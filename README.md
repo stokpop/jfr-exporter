@@ -122,8 +122,25 @@ These JFR events are processed:
 * Native Memory usage
 * Container CPU and Memory (CPU Throttling, Memory request exceeded count)
 * Thread context switch rate
+* Virtual Threads (JDK 21+)
 
 For reference: [list of JFR events](https://sap.github.io/SapMachine/jfrevents/).
+
+## Virtual Threads
+
+Virtual thread metrics are collected automatically on **JDK 21 or later**. On older JVMs the events are silently skipped.
+
+| Measurement | Field | Description |
+|---|---|---|
+| `virtual-threads` | `activeCount` | Number of currently active virtual threads. Emitted on each start and end event. |
+| `virtual-thread-pinned` | `duration-ns` | Duration (ns) a virtual thread was pinned to its carrier thread. Only events ≥ 20 ms are reported. Includes a stack trace to identify the pinning code. |
+| `virtual-thread-submit-failed` | `count` | A virtual thread could not be submitted to the scheduler (e.g. queue full). Extra fields: `javaThreadId`, `exceptionMessage`. |
+
+### Pinned virtual threads
+
+A virtual thread is *pinned* when it cannot be unmounted from its carrier thread — typically because it holds a `synchronized` lock or is executing native code. Pinning reduces the effectiveness of the virtual thread scheduler and can cause latency spikes. The `virtual-thread-pinned` measurement with its stack trace helps identify which code is causing the pinning.
+
+> **JDK 24+:** [JEP 491](https://openjdk.org/jeps/491) eliminated pinning caused by `synchronized` blocks, so this event fires far less often on JDK 24 or later. Pinning inside native frames remains possible on all versions.
 
 ## Stack traces
 

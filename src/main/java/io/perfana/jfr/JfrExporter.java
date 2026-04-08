@@ -91,6 +91,9 @@ public class JfrExporter {
                 ContainerEvent containerEvent = new ContainerEvent(eventProcessor);
                 containerEvent.getEventSettings().forEach(eventHandler::register);
 
+                VirtualThreadEvent virtualThreadEvent = new VirtualThreadEvent(eventProcessor);
+                virtualThreadEvent.getEventSettings().forEach(eventHandler::register);
+
                 JfrConnector jfrConnector = new JfrConnector(eventHandler);
 
                 if (args.getProcessId() == null) {

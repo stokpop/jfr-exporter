@@ -1,0 +1,5589 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Show events from JFR",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "CPU",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"CPU\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "CPU",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 7,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "heap",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"heap\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Heap used",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 6,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "threads",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"threads\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Threads active",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 4,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "bytes per second",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "allocation-rate-bytes",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"bytes\" FROM \"allocation-rate-bytes\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Memory allocation rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 3,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "youngGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"duration-ms\") FROM \"youngGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections (young)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 12,
+        "y": 18
+      },
+      "id": 10,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "youngGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"duration-ms\") FROM \"youngGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections max (young)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 18
+      },
+      "id": 24,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "youngGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"duration-ms\") FROM \"youngGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections total time (young)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 27
+      },
+      "id": 8,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Old GC duration",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "oldGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"duration-ms\") FROM \"oldGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections (old)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 12,
+        "y": 27
+      },
+      "id": 12,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "oldGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"duration-ms\") FROM \"oldGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections max (old)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 27
+      },
+      "id": 22,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "oldGc",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"duration-ms\") FROM \"oldGc\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Garbage collections total time (old)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 36
+      },
+      "id": 9,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "Safe point duration",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "safepoint",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"duration-ms\") FROM \"safepoint\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Safe points",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 12,
+        "y": 36
+      },
+      "id": 11,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "safepoint",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT distinct(\"duration-ms\") FROM \"safepoint\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Safe point max",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 36
+      },
+      "id": 23,
+      "interval": "10s",
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "max"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "safepoint",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"duration-ms\") FROM \"safepoint\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ms"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Safe point total time",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 6,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 45
+      },
+      "id": 13,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "big allocation size",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "big-allocations",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT distinct(\"bytes\") FROM \"big-allocations\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Big allocations",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "big-allocations.bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 45
+      },
+      "id": 15,
+      "interval": "10s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "big-allocations.bytes"
+          }
+        ]
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "big-allocations",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"bytes\" FROM \"big-allocations\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "hide": false,
+          "measurement": "big-allocations",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"stacktrace\",\"objectClass\" FROM \"big-allocations\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "stacktrace"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "objectClass"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "thread"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Big allocation stacktraces",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "big-allocations.bytes",
+                "big-allocations.stacktrace",
+                "big-allocations.thread",
+                "big-allocations.objectClass"
+              ]
+            }
+          }
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "big-allocations.bytes": "size",
+              "big-allocations.objectClass": "object class",
+              "big-allocations.stacktrace": "stacktrace",
+              "big-allocations.thread": "thread"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 2,
+            "pointSize": 6,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 54
+      },
+      "id": 16,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "allocation sample",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "object-allocation-sample",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT distinct(\"bytes\") FROM \"object-allocation-sample\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "distinct"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Large allocation samples",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "object-allocation-sample.bytes"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "decbytes"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 54
+      },
+      "id": 17,
+      "interval": "10s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "size"
+          }
+        ]
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "object-allocation-sample",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"bytes\" FROM \"object-allocation-sample\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "hide": false,
+          "measurement": "object-allocation-sample",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"stacktrace\", \"objectClass\", \"thread\" FROM \"object-allocation-sample\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "stacktrace"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "objectClass"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "thread"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Large allocation samples stacktraces",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "object-allocation-sample.bytes",
+                "object-allocation-sample.stacktrace",
+                "object-allocation-sample.objectClass",
+                "object-allocation-sample.thread"
+              ]
+            }
+          }
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "object-allocation-sample.bytes": "size",
+              "object-allocation-sample.objectClass": "object class",
+              "object-allocation-sample.stacktrace": "stacktrace",
+              "object-allocation-sample.thread": "thread"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 63
+      },
+      "id": 19,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "monitor duration",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "java-monitor-enter",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"java-monitor-enter\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ns"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Java Monitor Enter",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "java-monitor-enter.duration-ns"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ns"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 63
+      },
+      "id": 21,
+      "interval": "10s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "java-monitor-enter.duration-ns"
+          }
+        ]
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "java-monitor-enter",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"java-monitor-enter\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ns"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "hide": false,
+          "measurement": "java-monitor-enter",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"stacktrace\",\"monitor-class\",\"thread\",\"previous-owner\",\"address\" FROM \"java-monitor-enter\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "stacktrace"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "thread"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "address"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "monitor-class"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "previous-owner"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Java Monitor Enter stacktraces",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "java-monitor-enter.duration-ns",
+                "java-monitor-enter.stacktrace",
+                "java-monitor-enter.thread",
+                "java-monitor-enter.address",
+                "java-monitor-enter.monitor-class",
+                "java-monitor-enter.previous-owner",
+                "Time"
+              ]
+            }
+          }
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "java-monitor-enter.address": "address",
+              "java-monitor-enter.duration-ns": "duration",
+              "java-monitor-enter.monitor-class": "monitor class",
+              "java-monitor-enter.previous-owner": "previous owner",
+              "java-monitor-enter.stacktrace": "stacktrace",
+              "java-monitor-enter.thread": "thread"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 72
+      },
+      "id": 25,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "java-monitor-wait",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"java-monitor-wait\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ns"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Java Monitor Wait",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "java-monitor-wait.duration-ns"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ns"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 72
+      },
+      "id": 26,
+      "interval": "10s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "duration"
+          }
+        ]
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "java-monitor-wait",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"java-monitor-wait\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "duration-ns"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "hide": false,
+          "measurement": "java-monitor-wait",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"stacktrace\",\"monitor-class\",\"thread\",\"notifier\",\"timeout\",\"timed-out\" FROM \"java-monitor-wait\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "stacktrace"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "thread"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "address"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "monitor-class"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "notifier"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "timeout"
+                ],
+                "type": "field"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "timed-out"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": []
+        }
+      ],
+      "title": "Java Monitor Wait stacktraces",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "java-monitor-wait.stacktrace",
+                "java-monitor-wait.thread",
+                "java-monitor-wait.address",
+                "java-monitor-wait.monitor-class",
+                "java-monitor-wait.notifier",
+                "java-monitor-wait.timeout",
+                "java-monitor-wait.timed-out",
+                "java-monitor-wait.duration-ns"
+              ]
+            }
+          }
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "java-monitor-wait.address": "address",
+              "java-monitor-wait.duration-ns": "duration",
+              "java-monitor-wait.monitor-class": "monitor-class",
+              "java-monitor-wait.notifier": "notifier",
+              "java-monitor-wait.stacktrace": "stacktrace",
+              "java-monitor-wait.thread": "thread",
+              "java-monitor-wait.timed-out": "timed-out",
+              "java-monitor-wait.timeout": "timeout-ms"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 81
+      },
+      "id": 18,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_host $tag_address $tag_port",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "port::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "host::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "address::tag"
+              ],
+              "type": "tag"
+            }
+          ],
+          "measurement": "socket-read-rate-bytes",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"bytes\") FROM \"socket-read-rate-bytes\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval), \"port\"::tag, \"host\"::tag, \"address\"::tag",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Socket read bytes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 81
+      },
+      "id": 20,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_host $tag_address $tag_port",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "port::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "address::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "host::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "socket-write-rate-bytes",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT sum(\"bytes\") FROM \"socket-write-rate-bytes\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval), \"port\"::tag, \"address\"::tag, \"host\"::tag fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "bytes"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "sum"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Socket write bytes",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "displayName": "loaded classes count",
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 90
+      },
+      "id": 5,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "classes-loaded",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"loadedClassCount\") FROM \"classes-loaded\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "loadedClassCount"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Classes loaded",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 90
+      },
+      "id": 28,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "memory-resident-set-size",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"memory-resident-set-size\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Memory Resident Set Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 99
+      },
+      "id": 29,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_type",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "type::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "memory-native",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"committed\") FROM \"memory-native\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval), \"type\"::tag fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "committed"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Memory Native Committed per Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 99
+      },
+      "id": 30,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$tag_type",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "type::tag"
+              ],
+              "type": "tag"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "memory-native",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"reserved\") FROM \"memory-native\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval), \"type\"::tag fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "reserved"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Memory Native Reserved per Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 108
+      },
+      "id": 27,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "memory-native-total",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"memory-native-total\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Native Memory Total",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "hertz"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 108
+      },
+      "id": 31,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "min",
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "switch rate",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [
+            {
+              "params": [
+                "$__interval"
+              ],
+              "type": "time"
+            },
+            {
+              "params": [
+                "null"
+              ],
+              "type": "fill"
+            }
+          ],
+          "measurement": "thread-context-switch-rate",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"switchRate\") FROM \"thread-context-switch-rate\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "switchRate"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "max"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Thread context switch rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 117
+      },
+      "id": 32,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "container-cpu-throttling-time",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT difference(*) FROM \"container-cpu-throttling-time\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "difference"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Container CPU throttle time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 117
+      },
+      "id": 33,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "container-cpu-throttling-slices",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT difference(*) FROM \"container-cpu-throttling-slices\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "difference"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Container CPU slices",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 126
+      },
+      "id": 34,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "container-memory-usage",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(*) FROM \"container-memory-usage\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Container memory usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 126
+      },
+      "id": 35,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "$col",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "measurement": "container-memory-usage-failures",
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT difference(*) FROM \"container-memory-usage-failures\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "field"
+              },
+              {
+                "params": [],
+                "type": "difference"
+              }
+            ]
+          ],
+          "tags": [
+            {
+              "key": "service::tag",
+              "operator": "=~",
+              "value": "/^$service$/"
+            },
+            {
+              "condition": "AND",
+              "key": "testEnvironment::tag",
+              "operator": "=~",
+              "value": "/^$test_environment$/"
+            },
+            {
+              "condition": "AND",
+              "key": "systemUnderTest::tag",
+              "operator": "=~",
+              "value": "/^$system_under_test$/"
+            }
+          ]
+        }
+      ],
+      "title": "Container memory request failures",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 135
+      },
+      "id": 36,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "active virtual threads",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT max(\"activeCount\") FROM \"virtual-threads\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [],
+          "tags": []
+        }
+      ],
+      "title": "Virtual Threads active",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 135
+      },
+      "id": 37,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "pinned duration",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"virtual-thread-pinned\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [],
+          "tags": []
+        }
+      ],
+      "title": "Virtual Thread Pinned",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "virtual-thread-pinned.duration-ns"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "ns"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 144
+      },
+      "id": 38,
+      "interval": "10s",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "virtual-thread-pinned.duration-ns"
+          }
+        ]
+      },
+      "pluginVersion": "10.2.3",
+      "targets": [
+        {
+          "alias": "pinned duration",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"duration-ns\" FROM \"virtual-thread-pinned\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [],
+          "tags": []
+        },
+        {
+          "alias": "stacktrace",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT \"stacktrace\" FROM \"virtual-thread-pinned\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series",
+          "select": [],
+          "tags": []
+        }
+      ],
+      "title": "Virtual Thread Pinned stacktraces",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "Time",
+                "virtual-thread-pinned.duration-ns",
+                "virtual-thread-pinned.stacktrace"
+              ]
+            }
+          }
+        },
+        {
+          "id": "seriesToColumns",
+          "options": {
+            "byField": "Time"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "virtual-thread-pinned.duration-ns": "duration",
+              "virtual-thread-pinned.stacktrace": "stacktrace"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "influxdb",
+        "uid": "${DS_INFLUXDB_JFR}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 3,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": 30000,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 144
+      },
+      "id": 39,
+      "interval": "10s",
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "alias": "submit failed",
+          "datasource": {
+            "type": "influxdb",
+            "uid": "${DS_INFLUXDB_JFR}"
+          },
+          "groupBy": [],
+          "orderByTime": "ASC",
+          "policy": "default",
+          "query": "SELECT difference(\"count\") FROM \"virtual-thread-submit-failed\" WHERE (\"service\"::tag =~ /^$service$/ AND \"testEnvironment\"::tag =~ /^$test_environment$/ AND \"systemUnderTest\"::tag =~ /^$system_under_test$/) AND $timeFilter",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series",
+          "select": [],
+          "tags": []
+        }
+      ],
+      "title": "Virtual Thread Submit Failed",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 39,
+  "tags": [
+    "jfr",
+    "perfana",
+    "perfana-template"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB_JFR}"
+        },
+        "definition": "SHOW TAG VALUES WITH KEY = \"systemUnderTest\"",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "system_under_test",
+        "options": [],
+        "query": "SHOW TAG VALUES WITH KEY = \"systemUnderTest\"",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB_JFR}"
+        },
+        "definition": "SHOW TAG VALUES WITH KEY = \"testEnvironment\" WHERE \"systemUnderTest\" =~ /$system_under_test/",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "test_environment",
+        "options": [],
+        "query": "SHOW TAG VALUES WITH KEY = \"testEnvironment\" WHERE \"systemUnderTest\" =~ /$system_under_test/",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": {
+          "type": "influxdb",
+          "uid": "${DS_INFLUXDB_JFR}"
+        },
+        "definition": "SHOW TAG VALUES WITH KEY = \"service\" WHERE \"systemUnderTest\" =~ /$system_under_test/ AND \"testEnvironment\" =~ /$test_environment/",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "service",
+        "options": [],
+        "query": "SHOW TAG VALUES WITH KEY = \"service\" WHERE \"systemUnderTest\" =~ /$system_under_test/ AND \"testEnvironment\" =~ /$test_environment/",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Perfana JFR Metrics 0.6",
+  "uid": "perfana-jfr-metrics-0-5-1",
+  "version": 22,
+  "weekStart": ""
+}

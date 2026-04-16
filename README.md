@@ -135,9 +135,11 @@ These JFR events are processed:
 * Container CPU and Memory (CPU Throttling, Memory request exceeded count)
 * Thread context switch rate
 * ForkJoin common pool activity
+* Custom thread executor activity
 * Virtual Threads (JDK 21+)
 
 ForkJoin common-pool monitoring is exported through a lightweight sampler inside jfr-exporter rather than a built-in JFR event. It emits `forkjoin-pool` with `activeThreadCount` as the primary value and `poolSize` plus `queuedTaskCount` as numeric extra fields.
+Custom application executors discovered by the Java agent are sampled the same way and emitted as `executor-pool` with `activeThreadCount` as the primary value plus `poolSize` and `queueSize` as numeric extra fields. The agent discovers these pools by instrumenting common executor factory methods and thread-pool constructors in the injected application.
 
 For reference: [list of JFR events](https://sap.github.io/SapMachine/jfrevents/).
 

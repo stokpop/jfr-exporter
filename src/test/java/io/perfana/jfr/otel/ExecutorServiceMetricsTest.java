@@ -99,16 +99,16 @@ class ExecutorServiceMetricsTest {
     @Test
     void returnsNoOpForNonThreadPoolExecutor() {
         FakeGaugeMeterProvider provider = new FakeGaugeMeterProvider();
-        // Virtual-thread executor is not a ThreadPoolExecutor
-        ExecutorService virtualThreadExecutor = Executors.newVirtualThreadPerTaskExecutor();
+        // Work-stealing pool (ForkJoinPool) is not a ThreadPoolExecutor
+        ExecutorService forkJoinExecutor = Executors.newWorkStealingPool();
         try {
             ExecutorServiceMetrics metrics = ExecutorServiceMetrics.register(
-                    provider, virtualThreadExecutor, "vt-pool");
+                    provider, forkJoinExecutor, "wsp-pool");
 
             assertEquals(0, provider.gaugeCount(),
                     "No gauges should be registered for non-ThreadPoolExecutor");
         } finally {
-            virtualThreadExecutor.shutdown();
+            forkJoinExecutor.shutdown();
         }
     }
 

@@ -48,7 +48,6 @@ public class JfrExporter {
     }
 
     public void start(Arguments args) {
-
         if (args.isDebug()) {
             Logger.enabledDebug();
         }
@@ -59,9 +58,11 @@ public class JfrExporter {
 
         JfrEventProcessor eventProcessor = createEventProcessor(args);
         ForkJoinPoolMonitor forkJoinPoolMonitor = new ForkJoinPoolMonitor(eventProcessor);
+        DiscoveredExecutorMonitor discoveredExecutorMonitor = new DiscoveredExecutorMonitor(eventProcessor);
 
         try {
             forkJoinPoolMonitor.start();
+            discoveredExecutorMonitor.start();
 
             CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
             cpuLoadEvent.getEventSettings().forEach(eventHandler::register);
@@ -106,6 +107,7 @@ public class JfrExporter {
                 jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
             }
         } finally {
+            autoClose(discoveredExecutorMonitor, "discovered executor monitor");
             autoClose(forkJoinPoolMonitor, "fork join monitor");
             closeEventProcessor(eventProcessor);
         }
@@ -158,6 +160,7 @@ public class JfrExporter {
 
     public static void premain(String args, Instrumentation instrumentation){
         log.info("premain: %s", (args == null ? "<no args>" : args));
+        ExecutorInstrumentation.install(instrumentation);
         JfrExporter jfrExporter = new JfrExporter();
         String[] argsArray = splitAgentArgs(args);
 

@@ -134,7 +134,10 @@ These JFR events are processed:
 * Native Memory usage
 * Container CPU and Memory (CPU Throttling, Memory request exceeded count)
 * Thread context switch rate
+* ForkJoin common pool activity
 * Virtual Threads (JDK 21+)
+
+ForkJoin common-pool monitoring is exported through a lightweight sampler inside jfr-exporter rather than a built-in JFR event. It emits `forkjoin-pool` with `activeThreadCount` as the primary value and `poolSize` plus `queuedTaskCount` as numeric extra fields.
 
 For reference: [list of JFR events](https://sap.github.io/SapMachine/jfrevents/).
 

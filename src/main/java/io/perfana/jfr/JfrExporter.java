@@ -58,8 +58,11 @@ public class JfrExporter {
         JfrEventHandler eventHandler = new JfrEventHandler();
 
         JfrEventProcessor eventProcessor = createEventProcessor(args);
+        ForkJoinPoolMonitor forkJoinPoolMonitor = new ForkJoinPoolMonitor(eventProcessor);
 
         try {
+            forkJoinPoolMonitor.start();
+
             CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
             cpuLoadEvent.getEventSettings().forEach(eventHandler::register);
 
@@ -103,17 +106,22 @@ public class JfrExporter {
                 jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
             }
         } finally {
-            autoClose(eventProcessor);
+            autoClose(forkJoinPoolMonitor, "fork join monitor");
+            closeEventProcessor(eventProcessor);
         }
     }
 
-    private static void autoClose(JfrEventProcessor eventProcessor) {
+    private static void closeEventProcessor(JfrEventProcessor eventProcessor) {
+        if (eventProcessor instanceof AutoCloseable autoCloseable) {
+            autoClose(autoCloseable, "event processor");
+        }
+    }
+
+    private static void autoClose(AutoCloseable autoCloseable, String description) {
         try {
-            if (eventProcessor instanceof AutoCloseable autoCloseable) {
-                autoCloseable.close();
-            }
+            autoCloseable.close();
         } catch (Exception e) {
-            log.error("Error closing event processor: %s", e.getMessage());
+            log.error("Error closing %s: %s", description, e.getMessage());
         }
     }
 

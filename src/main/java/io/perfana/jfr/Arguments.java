@@ -25,6 +25,7 @@ public class Arguments {
     private String influxDatabase = "jfr";
     private String influxUser = "";
     private String influxPassword = "";
+    private String otlpEndpoint = null;
     private boolean debug = false;
     private Duration duration = null;
     private String influxRetentionPolicy = "autogen";
@@ -41,6 +42,7 @@ public class Arguments {
                 " --bigObjectThreshold <bytes>" +
                 " --bigObjectSampleWeightThreshold <bytes>" +
                 " --disableStackTraces" +
+                " --otlpEndpoint <otlpEndpoint>" +
                 " --influxUrl <influxUrl> --influxDatabase <influxDatabase>" +
                 " --influxUser <influxUser> --influxPassword <influxPassword>";
     }
@@ -93,6 +95,11 @@ public class Arguments {
 
             if (matches(arg,  "--influxUrl", "influxUrl")) {
                 arguments.influxUrl = options.remove();
+                continue;
+            }
+
+            if (matches(arg,  "--otlpEndpoint", "otlpEndpoint")) {
+                arguments.otlpEndpoint = options.remove();
                 continue;
             }
 
@@ -151,7 +158,7 @@ public class Arguments {
         return processId;
     }
 
-    public Map getTags() {
+    public Map<String, String> getTags() {
         return Collections.unmodifiableMap(tags);
     }
 
@@ -168,6 +175,10 @@ public class Arguments {
 
     public String getInfluxDatabase() {
         return influxDatabase;
+    }
+
+    public String getOtlpEndpoint() {
+        return otlpEndpoint;
     }
 
     public String getInfluxUser() {
@@ -192,6 +203,7 @@ public class Arguments {
                 "processId=" + processId +
                 ", tags ='" + tags + '\'' +
                 ", bigObjectThreshold='" + bigObjectThresholdBytes + '\'' +
+                ", otlpEndpoint='" + otlpEndpoint + '\'' +
                 ", influxUrl='" + influxUrl + '\'' +
                 ", influxDatabase='" + influxDatabase + '\'' +
                 ", influxUser='" + influxUser + '\'' +
@@ -210,4 +222,3 @@ public class Arguments {
         return enableStackTraces;
     }
 }
-

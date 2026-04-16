@@ -1,6 +1,6 @@
 # JfrExporter
 
-Send JFR events to time series databases.
+Send JFR events to time series databases and OpenTelemetry collectors.
 
 Now in "beta", feedback welcome!
 
@@ -10,7 +10,7 @@ See tutorial in this [blog post](https://perfana.io/continuous-deep-dive-with-jf
 
 Makes use of [JFR Event Streaming](https://openjdk.org/jeps/349) as found in hotspot based JDK 14+.
 
-The InfluxDB time series database is used as storage for the metrics.
+The InfluxDB time series database can be used as storage for the metrics, and an OTLP gRPC collector can ingest the same JFR data as OpenTelemetry metrics.
 
 The metrics are displayed in a Grafana dashboard, as shown in the following screenshots.
 
@@ -84,17 +84,22 @@ Usage: java JfrExporter
  --duration <ISO-duration> 
  --tag <tag-name>/<tag-value>,
  --bigObjectThreshold <bytes>
- --bigObjectSampleWeightThreshold <bytes>
- --influxUrl <influxUrl> 
- --influxDatabase <influxDatabase>
- --influxUser <influxUser> 
- --influxPassword <influxPassword>
+  --bigObjectSampleWeightThreshold <bytes>
+  --otlpEndpoint <otlpEndpoint>
+  --influxUrl <influxUrl> 
+  --influxDatabase <influxDatabase>
+  --influxUser <influxUser> 
+  --influxPassword <influxPassword>
 
 ```
 
 Multiple tags can be specified.
 
 The default InfluxDB database name is `jfr`.
+
+Set `--otlpEndpoint http://localhost:4317` to export metrics to an OTLP gRPC collector instead of InfluxDB.
+When OTLP export is enabled, numeric JFR event values are sent as OpenTelemetry metrics and stack traces are intentionally omitted from the OTLP payload.
+The OTLP path also includes an example allocation-size recorder exposed as `jfr.object.allocation.bytes`, and the meter provider abstraction is designed so additional JFR metrics can be registered the same way.
 
 Use `--disableStackTraces` to limit stack traces to only the first three frames.
 
@@ -103,6 +108,13 @@ Example to connect to process with id 1234 and send events with service name aft
 java -jar jfr-exporter.jar --processId 1234 \
   --tag service/afterburner-fe --tag systemUnderTest/afterburner --tag testEnvironment/performance-test \
   --duration PT30s --influxUrl http://localhost:8086
+```
+
+Example to connect to process with id 1234 and export the same metrics to an OpenTelemetry collector:
+```bash
+java -jar jfr-exporter.jar --processId 1234 \
+  --tag service/afterburner-fe --tag systemUnderTest/afterburner --tag testEnvironment/performance-test \
+  --duration PT30s --otlpEndpoint http://localhost:4317
 ```
 
 To enable extra monitoring, such as safe points, or different thresholds, 
@@ -182,4 +194,3 @@ Use `-Dio.perfana.jfr.debug=true` to enable debug logging or `--debug` as argume
 For tracing (more debug logging) use: `-Dio.perfana.jfr.trace=true`
 
 Debug and tracing will output a lot of data, so only use for troubleshooting.
-

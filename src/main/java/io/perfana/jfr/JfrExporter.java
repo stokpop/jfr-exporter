@@ -20,6 +20,9 @@ import io.perfana.jfr.influx.InfluxEventProcessor;
 import io.perfana.jfr.influx.InfluxWriter;
 import io.perfana.jfr.influx.InfluxWriterConfig;
 import io.perfana.jfr.influx.InfluxWriterNative;
+import io.perfana.jfr.otel.JfrMeterProvider;
+import io.perfana.jfr.otel.OpenTelemetryEventProcessor;
+import io.perfana.jfr.otel.OpenTelemetryMeterProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.instrument.Instrumentation;
@@ -54,57 +57,55 @@ public class JfrExporter {
 
         JfrEventHandler eventHandler = new JfrEventHandler();
 
-        JfrEventProcessor eventProcessor = args.getInfluxUrl() == null
-                ? new NoopEventProcessor()
-                : createInfluxEventProcessor(args);
+        JfrEventProcessor eventProcessor = createEventProcessor(args);
 
-            try {
-                CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
-                cpuLoadEvent.getEventSettings().forEach(eventHandler::register);
+        try {
+            CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
+            cpuLoadEvent.getEventSettings().forEach(eventHandler::register);
 
-                SafepointEvent safepointEvent = new SafepointEvent(eventProcessor);
-                safepointEvent.getEventSettings().forEach(eventHandler::register);
+            SafepointEvent safepointEvent = new SafepointEvent(eventProcessor);
+            safepointEvent.getEventSettings().forEach(eventHandler::register);
 
-                ObjectAllocationSampleEvent objectAllocationSampleEvent =
-                        new ObjectAllocationSampleEvent(eventProcessor, args.getBigObjectSampleWeigthThresholdBytes());
-                objectAllocationSampleEvent.getEventSettings().forEach(eventHandler::register);
+            ObjectAllocationSampleEvent objectAllocationSampleEvent =
+                    new ObjectAllocationSampleEvent(eventProcessor, args.getBigObjectSampleWeigthThresholdBytes());
+            objectAllocationSampleEvent.getEventSettings().forEach(eventHandler::register);
 
-                ObjectAllocationEvent objectAllocationEvent =
-                        new ObjectAllocationEvent(eventProcessor, args.getBigObjectThresholdBytes());
-                objectAllocationEvent.getEventSettings().forEach(eventHandler::register);
+            ObjectAllocationEvent objectAllocationEvent =
+                    new ObjectAllocationEvent(eventProcessor, args.getBigObjectThresholdBytes());
+            objectAllocationEvent.getEventSettings().forEach(eventHandler::register);
 
-                GCHeapEvent gcHeapEvent = new GCHeapEvent(eventProcessor);
-                gcHeapEvent.getEventSettings().forEach(eventHandler::register);
+            GCHeapEvent gcHeapEvent = new GCHeapEvent(eventProcessor);
+            gcHeapEvent.getEventSettings().forEach(eventHandler::register);
 
-                JavaStatisticsEvent javaStatisticsEvent = new JavaStatisticsEvent(eventProcessor);
-                javaStatisticsEvent.getEventSettings().forEach(eventHandler::register);
+            JavaStatisticsEvent javaStatisticsEvent = new JavaStatisticsEvent(eventProcessor);
+            javaStatisticsEvent.getEventSettings().forEach(eventHandler::register);
 
-                MonitorEvent monitorEvent = new MonitorEvent(eventProcessor);
-                monitorEvent.getEventSettings().forEach(eventHandler::register);
+            MonitorEvent monitorEvent = new MonitorEvent(eventProcessor);
+            monitorEvent.getEventSettings().forEach(eventHandler::register);
 
-                SocketEvent socketEvent = new SocketEvent(eventProcessor);
-                socketEvent.getEventSettings().forEach(eventHandler::register);
+            SocketEvent socketEvent = new SocketEvent(eventProcessor);
+            socketEvent.getEventSettings().forEach(eventHandler::register);
 
-                NativeMemoryEvent nativeMemoryEvent = new NativeMemoryEvent(eventProcessor);
-                nativeMemoryEvent.getEventSettings().forEach(eventHandler::register);
+            NativeMemoryEvent nativeMemoryEvent = new NativeMemoryEvent(eventProcessor);
+            nativeMemoryEvent.getEventSettings().forEach(eventHandler::register);
 
-                ContainerEvent containerEvent = new ContainerEvent(eventProcessor);
-                containerEvent.getEventSettings().forEach(eventHandler::register);
+            ContainerEvent containerEvent = new ContainerEvent(eventProcessor);
+            containerEvent.getEventSettings().forEach(eventHandler::register);
 
-                VirtualThreadEvent virtualThreadEvent = new VirtualThreadEvent(eventProcessor);
-                virtualThreadEvent.getEventSettings().forEach(eventHandler::register);
+            VirtualThreadEvent virtualThreadEvent = new VirtualThreadEvent(eventProcessor);
+            virtualThreadEvent.getEventSettings().forEach(eventHandler::register);
 
-                JfrConnector jfrConnector = new JfrConnector(eventHandler);
+            JfrConnector jfrConnector = new JfrConnector(eventHandler);
 
-                if (args.getProcessId() == null) {
-                    jfrConnector.connectInternalJVM(args.getDuration());
-                } else {
-                    jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
-                }
-            } finally {
-                autoClose(eventProcessor);
+            if (args.getProcessId() == null) {
+                jfrConnector.connectInternalJVM(args.getDuration());
+            } else {
+                jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
             }
+        } finally {
+            autoClose(eventProcessor);
         }
+    }
 
     private static void autoClose(JfrEventProcessor eventProcessor) {
         try {
@@ -127,6 +128,24 @@ public class JfrExporter {
                 args.isEnableStackTraces());
         InfluxWriter writer = new InfluxWriterNative(config);
         return new InfluxEventProcessor(writer);
+    }
+
+    private JfrEventProcessor createEventProcessor(Arguments args) {
+        if (args.getOtlpEndpoint() != null) {
+            if (args.getInfluxUrl() != null) {
+                log.info("Using OTLP exporter at %s, ignoring InfluxDB exporter at %s", args.getOtlpEndpoint(), args.getInfluxUrl());
+            }
+            return createOpenTelemetryEventProcessor(args);
+        }
+        if (args.getInfluxUrl() != null) {
+            return createInfluxEventProcessor(args);
+        }
+        return new NoopEventProcessor();
+    }
+
+    private JfrEventProcessor createOpenTelemetryEventProcessor(Arguments args) {
+        JfrMeterProvider meterProvider = new OpenTelemetryMeterProvider(args.getOtlpEndpoint(), args.getTags());
+        return new OpenTelemetryEventProcessor(meterProvider, args.getTags());
     }
 
     public static void premain(String args, Instrumentation instrumentation){

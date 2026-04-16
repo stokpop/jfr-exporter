@@ -24,13 +24,14 @@ class ArgumentsTest {
     @Test
     void parseArgs() {
 
-        String[] args = {"-d", "--processId", "1234"};
+        String[] args = {"-d", "--processId", "1234", "--otlpEndpoint", "http://localhost:4317"};
 
         Arguments arguments = Arguments.parseArgs(args);
 
         assertNotNull(arguments);
         assertEquals(1234, arguments.getProcessId());
         assertTrue(arguments.isDebug());
+        assertEquals("http://localhost:4317", arguments.getOtlpEndpoint());
 
     }
 

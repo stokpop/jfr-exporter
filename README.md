@@ -63,6 +63,9 @@ There is no need to enable JFR in the JVM arguments (`-XX:StartFlightRecording`)
 
 Options can be sent as `-javaagent:/path/to/jfr-exporter.jar=option1=value1,option2=value2`.
 
+For OTLP over HTTP, use the collector base URL and let jfr-exporter append the signal path internally.
+Example: `-javaagent:/path/to/jfr-exporter.jar=duration=PT30s,otlpEndpoint=http://localhost:4318,otlpSignal=metrics,otlpFormat=json`
+
 Example: `-javaagent:/path/to/jfr-exporter.jar=debug,tag=service/afterburner`, which will enable
 debug logging and set the tag `service` to `afterburner`.
 
@@ -86,6 +89,9 @@ Usage: java JfrExporter
  --bigObjectThreshold <bytes>
   --bigObjectSampleWeightThreshold <bytes>
   --otlpEndpoint <otlpEndpoint>
+  --otlpProtocol <http|grpc>
+  --otlpSignal <metrics>
+  --otlpFormat <protobuf|json>
   --influxUrl <influxUrl> 
   --influxDatabase <influxDatabase>
   --influxUser <influxUser> 
@@ -97,7 +103,10 @@ Multiple tags can be specified.
 
 The default InfluxDB database name is `jfr`.
 
-Set `--otlpEndpoint http://localhost:4317` to export metrics to an OTLP gRPC collector instead of InfluxDB.
+Set `--otlpEndpoint http://localhost:4318 --otlpSignal metrics --otlpFormat json` to export metrics to an OTLP HTTP collector instead of InfluxDB.
+Use `--otlpProtocol grpc --otlpEndpoint http://localhost:4317 --otlpSignal metrics` for OTLP/gRPC collectors.
+Do not include `/v1/metrics` in the configured endpoint; jfr-exporter appends the correct OTLP signal path internally for HTTP exporters.
+OTLP/HTTP uses regular HTTP transport with `POST /v1/metrics`. Use `--otlpFormat protobuf` for binary protobuf payloads (`Content-Type: application/x-protobuf`) or `--otlpFormat json` for JSON-encoded OTLP metrics (`Content-Type: application/json`).
 When OTLP export is enabled, numeric JFR event values are sent as OpenTelemetry metrics and stack traces are intentionally omitted from the OTLP payload.
 The OTLP path also includes an example allocation-size recorder exposed as `jfr.object.allocation.bytes`, and the meter provider abstraction is designed so additional JFR metrics can be registered the same way.
 
@@ -114,7 +123,14 @@ Example to connect to process with id 1234 and export the same metrics to an Ope
 ```bash
 java -jar jfr-exporter.jar --processId 1234 \
   --tag service/afterburner-fe --tag systemUnderTest/afterburner --tag testEnvironment/performance-test \
-  --duration PT30s --otlpEndpoint http://localhost:4317
+  --duration PT30s --otlpEndpoint http://localhost:4318 --otlpSignal metrics --otlpFormat json
+```
+
+Example to connect to process with id 1234 and export the same metrics to an OpenTelemetry gRPC collector:
+```bash
+java -jar jfr-exporter.jar --processId 1234 \
+  --tag service/afterburner-fe --tag systemUnderTest/afterburner --tag testEnvironment/performance-test \
+  --duration PT30s --otlpProtocol grpc --otlpEndpoint http://localhost:4317 --otlpSignal metrics
 ```
 
 To enable extra monitoring, such as safe points, or different thresholds, 

@@ -15,8 +15,11 @@
  */
 package io.perfana.jfr.otel;
 
+import com.sun.net.httpserver.HttpServer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
@@ -28,18 +31,25 @@ import io.opentelemetry.sdk.metrics.data.MetricDataType;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class OpenTelemetryMeterProviderTest {
 
@@ -194,6 +204,198 @@ class OpenTelemetryMeterProviderTest {
         // The gauge may have been reported before close; we only care that closing did not throw.
         // The important property is that no exception propagates.
         assertTrue(true, "Gauge handle closed without error");
+    }
+
+    @Test
+    void infersGrpcProtocolForLegacy4317Endpoint() {
+        OpenTelemetryMeterProvider.OtlpExporterConfig config =
+                OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4317", null, null, null);
+
+        assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.GRPC, config.protocol());
+        assertEquals("http://localhost:4317", config.endpoint());
+        assertEquals(OpenTelemetryMeterProvider.OtlpSignal.METRICS, config.signal());
+        assertEquals(OpenTelemetryMeterProvider.OtlpFormat.PROTOBUF, config.format());
+    }
+
+    @Test
+    void infersHttpProtocolFor4318EndpointAndAppendsMetricsPath() {
+        OpenTelemetryMeterProvider.OtlpExporterConfig config =
+                OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4318", null, null, null);
+
+        assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.HTTP, config.protocol());
+        assertEquals("http://localhost:4318/v1/metrics", config.endpoint());
+        assertEquals(OpenTelemetryMeterProvider.OtlpSignal.METRICS, config.signal());
+        assertEquals(OpenTelemetryMeterProvider.OtlpFormat.PROTOBUF, config.format());
+    }
+
+    @Test
+    void rejectsSignalPathInConfiguredEndpoint() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4318/v1/metrics", null, null, null));
+
+        assertTrue(exception.getMessage().contains("base OTLP collector URL"));
+    }
+
+    @Test
+    void appendsMetricsPathToExistingBasePath() {
+        OpenTelemetryMeterProvider.OtlpExporterConfig config =
+                OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4318/otel", null, null, null);
+
+        assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.HTTP, config.protocol());
+        assertEquals("http://localhost:4318/otel/v1/metrics", config.endpoint());
+    }
+
+    @Test
+    void explicitProtocolOverridesEndpointInference() {
+        OpenTelemetryMeterProvider.OtlpExporterConfig config =
+                OpenTelemetryMeterProvider.createExporterConfig(
+                        "http://localhost:4317",
+                        OpenTelemetryMeterProvider.OtlpProtocol.HTTP,
+                        OpenTelemetryMeterProvider.OtlpSignal.METRICS,
+                        OpenTelemetryMeterProvider.OtlpFormat.PROTOBUF);
+
+        assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.HTTP, config.protocol());
+        assertEquals("http://localhost:4317/v1/metrics", config.endpoint());
+    }
+
+    @Test
+    void createsHttpExporterWhenConfigured() {
+        MetricExporter exporter = OpenTelemetryMeterProvider.createMetricExporter(
+                OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4318", null, null, null));
+
+        assertTrue(exporter instanceof OtlpHttpMetricExporter);
+    }
+
+    @Test
+    void createsHttpJsonExporterWhenConfigured() {
+        MetricExporter exporter = OpenTelemetryMeterProvider.createMetricExporter(
+                OpenTelemetryMeterProvider.createExporterConfig(
+                        "http://localhost:4318",
+                        OpenTelemetryMeterProvider.OtlpProtocol.HTTP,
+                        OpenTelemetryMeterProvider.OtlpSignal.METRICS,
+                        OpenTelemetryMeterProvider.OtlpFormat.JSON));
+
+        assertEquals("OtlpHttpJsonMetricExporter", exporter.getClass().getSimpleName());
+    }
+
+    @Test
+    void createsGrpcExporterWhenConfigured() {
+        MetricExporter exporter = OpenTelemetryMeterProvider.createMetricExporter(
+                OpenTelemetryMeterProvider.createExporterConfig("http://localhost:4317", null, null, null));
+
+        assertTrue(exporter instanceof OtlpGrpcMetricExporter);
+    }
+
+    @Test
+    void rejectsJsonExporterForGrpcProtocol() {
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> OpenTelemetryMeterProvider.createMetricExporter(
+                        OpenTelemetryMeterProvider.createExporterConfig(
+                                "http://localhost:4317",
+                                OpenTelemetryMeterProvider.OtlpProtocol.GRPC,
+                                OpenTelemetryMeterProvider.OtlpSignal.METRICS,
+                                OpenTelemetryMeterProvider.OtlpFormat.JSON)));
+
+        assertTrue(exception.getMessage().contains("only supported with HTTP"));
+    }
+
+    @Test
+    void httpExporterUsesHttpPostToMetricsPathWithProtobufPayload() throws Exception {
+        RecordedHttpRequest request = new RecordedHttpRequest();
+        CountDownLatch latch = new CountDownLatch(1);
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/", exchange -> {
+            request.method = exchange.getRequestMethod();
+            request.path = exchange.getRequestURI().getPath();
+            request.contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+            request.body = readAllBytes(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+            latch.countDown();
+        });
+        server.start();
+
+        try {
+            String endpoint = "http://localhost:" + server.getAddress().getPort();
+
+            try (OpenTelemetryMeterProvider meterProvider = new OpenTelemetryMeterProvider(
+                    endpoint,
+                    OpenTelemetryMeterProvider.OtlpProtocol.HTTP,
+                    OpenTelemetryMeterProvider.OtlpSignal.METRICS,
+                    Map.of("service", "checkout"))) {
+                JfrMeterProvider.LongValueRecorder recorder = meterProvider.registerLongValueRecorder(
+                        new JfrMeterProvider.MetricDescriptor("jfr.executor.queue.size", "Queue size", "1"));
+                recorder.record(5L, Attributes.empty());
+            }
+
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Expected OTLP/HTTP request to reach the mock server");
+            assertEquals("POST", request.method);
+            assertEquals("/v1/metrics", request.path);
+            assertTrue(request.contentType.startsWith("application/x-protobuf"));
+            assertFalse(request.body.length == 0, "Expected protobuf payload body");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void httpJsonExporterUsesHttpPostToMetricsPathWithJsonPayload() throws Exception {
+        RecordedHttpRequest request = new RecordedHttpRequest();
+        CountDownLatch latch = new CountDownLatch(1);
+        HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+        server.createContext("/", exchange -> {
+            request.method = exchange.getRequestMethod();
+            request.path = exchange.getRequestURI().getPath();
+            request.contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+            request.body = readAllBytes(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+            latch.countDown();
+        });
+        server.start();
+
+        try {
+            String endpoint = "http://localhost:" + server.getAddress().getPort();
+
+            try (OpenTelemetryMeterProvider meterProvider = new OpenTelemetryMeterProvider(
+                    endpoint,
+                    OpenTelemetryMeterProvider.OtlpProtocol.HTTP,
+                    OpenTelemetryMeterProvider.OtlpSignal.METRICS,
+                    OpenTelemetryMeterProvider.OtlpFormat.JSON,
+                    Map.of("service", "checkout"))) {
+                JfrMeterProvider.LongValueRecorder recorder = meterProvider.registerLongValueRecorder(
+                        new JfrMeterProvider.MetricDescriptor("jfr.executor.queue.size", "Queue size", "1"));
+                recorder.record(5L, Attributes.of(AttributeKey.stringKey("pool"), "main"));
+            }
+
+            assertTrue(latch.await(5, TimeUnit.SECONDS), "Expected OTLP/HTTP JSON request to reach the mock server");
+            assertEquals("POST", request.method);
+            assertEquals("/v1/metrics", request.path);
+            assertTrue(request.contentType.startsWith("application/json"));
+            assertFalse(request.body.length == 0, "Expected JSON payload body");
+
+            String payload = new String(request.body);
+            assertTrue(payload.contains("\"resourceMetrics\""));
+            assertTrue(payload.contains("\"histogram\""));
+            assertTrue(payload.contains("\"name\":\"jfr.executor.queue.size\""));
+            assertTrue(payload.contains("\"service.name\""));
+            assertTrue(payload.contains("\"pool\""));
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    private static byte[] readAllBytes(InputStream inputStream) throws IOException {
+        return inputStream.readAllBytes();
+    }
+
+    private static final class RecordedHttpRequest {
+        private String method;
+        private String path;
+        private String contentType;
+        private byte[] body = new byte[0];
     }
 
     private static final class CapturingMetricExporter implements MetricExporter {

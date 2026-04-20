@@ -1,5 +1,10 @@
 # Change log jfr-exporter
 
+### Unreleased
+* Added OTLP/HTTP metrics export support for collectors on port 4318 using a base collector endpoint
+* Added `otlpProtocol` and `otlpSignal` options so OTLP/gRPC on port 4317 remains supported and HTTP signal paths are added automatically
+* Added `otlpFormat=json` support for OTLP/HTTP metrics export
+
 ### v0.5.0: July 2024
 * Deprecated the application argument, use service tag instead
 * Specify multiple tags using tag=name/value, e.g. tag=service/afterburner-fe

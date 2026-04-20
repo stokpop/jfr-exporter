@@ -154,7 +154,12 @@ public class JfrExporter {
     }
 
     private JfrEventProcessor createOpenTelemetryEventProcessor(Arguments args) {
-        JfrMeterProvider meterProvider = new OpenTelemetryMeterProvider(args.getOtlpEndpoint(), args.getTags());
+        JfrMeterProvider meterProvider = new OpenTelemetryMeterProvider(
+                args.getOtlpEndpoint(),
+                args.getOtlpProtocol(),
+                args.getOtlpSignal(),
+                args.getOtlpFormat(),
+                args.getTags());
         return new OpenTelemetryEventProcessor(meterProvider, args.getTags());
     }
 

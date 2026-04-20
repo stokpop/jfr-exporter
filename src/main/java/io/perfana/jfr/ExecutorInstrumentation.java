@@ -20,6 +20,9 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LineNumberNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
@@ -108,6 +111,7 @@ public final class ExecutorInstrumentation {
 
         private static boolean rewriteMethod(MethodNode method) {
             boolean changed = false;
+            boolean constructorMethod = "<init>".equals(method.name);
 
             for (AbstractInsnNode instruction = method.instructions.getFirst(); instruction != null; ) {
                 AbstractInsnNode next = instruction.getNext();
@@ -115,7 +119,7 @@ public final class ExecutorInstrumentation {
                 if (instruction instanceof MethodInsnNode methodInsnNode) {
                     if (rewriteExecutorFactoryCall(methodInsnNode)) {
                         changed = true;
-                    } else if (rewriteExecutorConstructor(method.instructions, methodInsnNode)) {
+                    } else if (!constructorMethod && rewriteExecutorConstructor(method.instructions, methodInsnNode)) {
                         changed = true;
                     }
                 }
@@ -203,13 +207,9 @@ public final class ExecutorInstrumentation {
         private static void removeAllocationSequence(org.objectweb.asm.tree.InsnList instructions,
                                                      String owner,
                                                      MethodInsnNode constructorCall) {
-            AbstractInsnNode dupInstruction = null;
             TypeInsnNode newInstruction = null;
 
             for (AbstractInsnNode cursor = constructorCall.getPrevious(); cursor != null; cursor = cursor.getPrevious()) {
-                if (dupInstruction == null && cursor.getOpcode() == Opcodes.DUP) {
-                    dupInstruction = cursor;
-                }
                 if (cursor instanceof TypeInsnNode typeInsnNode
                         && typeInsnNode.getOpcode() == Opcodes.NEW
                         && owner.equals(typeInsnNode.desc)) {
@@ -219,11 +219,20 @@ public final class ExecutorInstrumentation {
             }
 
             if (newInstruction != null) {
+                AbstractInsnNode dupInstruction = nextMeaningfulInstruction(newInstruction.getNext());
+                if (dupInstruction != null && dupInstruction.getOpcode() == Opcodes.DUP) {
+                    instructions.remove(dupInstruction);
+                }
                 instructions.remove(newInstruction);
             }
-            if (dupInstruction != null) {
-                instructions.remove(dupInstruction);
+        }
+
+        private static AbstractInsnNode nextMeaningfulInstruction(AbstractInsnNode instruction) {
+            AbstractInsnNode current = instruction;
+            while (current instanceof LabelNode || current instanceof LineNumberNode || current instanceof FrameNode) {
+                current = current.getNext();
             }
+            return current;
         }
 
         private static String constructorDescriptorWithReturnType(String owner, String constructorDescriptor) {

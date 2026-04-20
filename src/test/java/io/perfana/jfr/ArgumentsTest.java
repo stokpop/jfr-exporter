@@ -17,6 +17,8 @@ package io.perfana.jfr;
 
 import org.junit.jupiter.api.Test;
 
+import io.perfana.jfr.otel.OpenTelemetryMeterProvider;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArgumentsTest {
@@ -33,6 +35,19 @@ class ArgumentsTest {
         assertTrue(arguments.isDebug());
         assertEquals("http://localhost:4317", arguments.getOtlpEndpoint());
 
+    }
+
+    @Test
+    void parseArgsWithOtlpProtocol() {
+        String[] args = {"--otlpEndpoint", "http://localhost:4318", "--otlpProtocol", "http", "--otlpSignal", "metrics", "--otlpFormat", "json"};
+
+        Arguments arguments = Arguments.parseArgs(args);
+
+        assertNotNull(arguments);
+        assertEquals("http://localhost:4318", arguments.getOtlpEndpoint());
+        assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.HTTP, arguments.getOtlpProtocol());
+        assertEquals(OpenTelemetryMeterProvider.OtlpSignal.METRICS, arguments.getOtlpSignal());
+        assertEquals(OpenTelemetryMeterProvider.OtlpFormat.JSON, arguments.getOtlpFormat());
     }
 
 }

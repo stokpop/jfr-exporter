@@ -35,4 +35,17 @@ class JfrExporterTest {
         assertEquals(6, strings.length);
     }
 
+    @Test
+    void splitAgentArgsWithOtlpBaseEndpointAndSignal() {
+        String[] strings = JfrExporter.splitAgentArgs("duration=PT30s,otlpEndpoint=http://localhost:4318,otlpSignal=metrics");
+
+        assertEquals(6, strings.length);
+        assertEquals("duration", strings[0]);
+        assertEquals("PT30s", strings[1]);
+        assertEquals("otlpEndpoint", strings[2]);
+        assertEquals("http://localhost:4318", strings[3]);
+        assertEquals("otlpSignal", strings[4]);
+        assertEquals("metrics", strings[5]);
+    }
+
 }

@@ -15,6 +15,8 @@
  */
 package io.perfana.jfr;
 
+import io.perfana.jfr.otel.OpenTelemetryMeterProvider;
+
 import java.time.Duration;
 import java.util.*;
 
@@ -26,6 +28,9 @@ public class Arguments {
     private String influxUser = "";
     private String influxPassword = "";
     private String otlpEndpoint = null;
+    private OpenTelemetryMeterProvider.OtlpProtocol otlpProtocol = null;
+    private OpenTelemetryMeterProvider.OtlpSignal otlpSignal = OpenTelemetryMeterProvider.OtlpSignal.METRICS;
+    private OpenTelemetryMeterProvider.OtlpFormat otlpFormat = OpenTelemetryMeterProvider.OtlpFormat.PROTOBUF;
     private boolean debug = false;
     private Duration duration = null;
     private String influxRetentionPolicy = "autogen";
@@ -43,6 +48,9 @@ public class Arguments {
                 " --bigObjectSampleWeightThreshold <bytes>" +
                 " --disableStackTraces" +
                 " --otlpEndpoint <otlpEndpoint>" +
+                " --otlpProtocol <http|grpc>" +
+                " --otlpSignal <metrics>" +
+                " --otlpFormat <protobuf|json>" +
                 " --influxUrl <influxUrl> --influxDatabase <influxDatabase>" +
                 " --influxUser <influxUser> --influxPassword <influxPassword>";
     }
@@ -100,6 +108,21 @@ public class Arguments {
 
             if (matches(arg,  "--otlpEndpoint", "otlpEndpoint")) {
                 arguments.otlpEndpoint = options.remove();
+                continue;
+            }
+
+            if (matches(arg,  "--otlpProtocol", "otlpProtocol")) {
+                arguments.otlpProtocol = OpenTelemetryMeterProvider.OtlpProtocol.parse(options.remove());
+                continue;
+            }
+
+            if (matches(arg,  "--otlpSignal", "otlpSignal")) {
+                arguments.otlpSignal = OpenTelemetryMeterProvider.OtlpSignal.parse(options.remove());
+                continue;
+            }
+
+            if (matches(arg,  "--otlpFormat", "otlpFormat")) {
+                arguments.otlpFormat = OpenTelemetryMeterProvider.OtlpFormat.parse(options.remove());
                 continue;
             }
 
@@ -181,6 +204,18 @@ public class Arguments {
         return otlpEndpoint;
     }
 
+    public OpenTelemetryMeterProvider.OtlpProtocol getOtlpProtocol() {
+        return otlpProtocol;
+    }
+
+    public OpenTelemetryMeterProvider.OtlpSignal getOtlpSignal() {
+        return otlpSignal;
+    }
+
+    public OpenTelemetryMeterProvider.OtlpFormat getOtlpFormat() {
+        return otlpFormat;
+    }
+
     public String getInfluxUser() {
         return influxUser;
     }
@@ -204,6 +239,9 @@ public class Arguments {
                 ", tags ='" + tags + '\'' +
                 ", bigObjectThreshold='" + bigObjectThresholdBytes + '\'' +
                 ", otlpEndpoint='" + otlpEndpoint + '\'' +
+                ", otlpProtocol='" + otlpProtocol + '\'' +
+                ", otlpSignal='" + otlpSignal + '\'' +
+                ", otlpFormat='" + otlpFormat + '\'' +
                 ", influxUrl='" + influxUrl + '\'' +
                 ", influxDatabase='" + influxDatabase + '\'' +
                 ", influxUser='" + influxUser + '\'' +

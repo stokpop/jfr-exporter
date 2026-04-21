@@ -31,6 +31,7 @@ public class Arguments {
     private OpenTelemetryMeterProvider.OtlpProtocol otlpProtocol = null;
     private OpenTelemetryMeterProvider.OtlpSignal otlpSignal = OpenTelemetryMeterProvider.OtlpSignal.METRICS;
     private OpenTelemetryMeterProvider.OtlpFormat otlpFormat = OpenTelemetryMeterProvider.OtlpFormat.PROTOBUF;
+    private boolean enableExecutorMBeans = false;
     private boolean debug = false;
     private Duration duration = null;
     private String influxRetentionPolicy = "autogen";
@@ -51,6 +52,7 @@ public class Arguments {
                 " --otlpProtocol <http|grpc>" +
                 " --otlpSignal <metrics>" +
                 " --otlpFormat <protobuf|json>" +
+                " --enableExecutorMBeans" +
                 " --influxUrl <influxUrl> --influxDatabase <influxDatabase>" +
                 " --influxUser <influxUser> --influxPassword <influxPassword>";
     }
@@ -123,6 +125,11 @@ public class Arguments {
 
             if (matches(arg,  "--otlpFormat", "otlpFormat")) {
                 arguments.otlpFormat = OpenTelemetryMeterProvider.OtlpFormat.parse(options.remove());
+                continue;
+            }
+
+            if (matches(arg, "--enableExecutorMBeans", "enableExecutorMBeans")) {
+                arguments.enableExecutorMBeans = true;
                 continue;
             }
 
@@ -228,6 +235,18 @@ public class Arguments {
         return debug;
     }
 
+    public boolean isEnableExecutorMBeans() {
+        return enableExecutorMBeans;
+    }
+
+    public boolean hasMetricExporter() {
+        return otlpEndpoint != null || influxUrl != null;
+    }
+
+    public boolean isMBeansOnlyMode() {
+        return enableExecutorMBeans && !hasMetricExporter();
+    }
+
     public Duration getDuration() {
         return duration;
     }
@@ -242,6 +261,7 @@ public class Arguments {
                 ", otlpProtocol='" + otlpProtocol + '\'' +
                 ", otlpSignal='" + otlpSignal + '\'' +
                 ", otlpFormat='" + otlpFormat + '\'' +
+                ", enableExecutorMBeans=" + enableExecutorMBeans +
                 ", influxUrl='" + influxUrl + '\'' +
                 ", influxDatabase='" + influxDatabase + '\'' +
                 ", influxUser='" + influxUser + '\'' +

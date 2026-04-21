@@ -4,6 +4,8 @@
 * Added OTLP/HTTP metrics export support for collectors on port 4318 using a base collector endpoint
 * Added `otlpProtocol` and `otlpSignal` options so OTLP/gRPC on port 4317 remains supported and HTTP signal paths are added automatically
 * Added `otlpFormat=json` support for OTLP/HTTP metrics export
+* Added optional `enableExecutorMBeans` support to expose discovered executor pools through JMX
+* Added true executor MBeans-only mode when `enableExecutorMBeans` is used without OTLP or Influx configuration
 
 ### v0.5.0: July 2024
 * Deprecated the application argument, use service tag instead

@@ -66,6 +66,10 @@ Options can be sent as `-javaagent:/path/to/jfr-exporter.jar=option1=value1,opti
 For OTLP over HTTP, use the collector base URL and let jfr-exporter append the signal path internally.
 Example: `-javaagent:/path/to/jfr-exporter.jar=duration=PT30s,otlpEndpoint=http://localhost:4318,otlpSignal=metrics,otlpFormat=json`
 
+To additionally expose discovered executor pools over JMX, add `enableExecutorMBeans`.
+Example: `-javaagent:/path/to/jfr-exporter.jar=duration=PT30s,enableExecutorMBeans`
+When `enableExecutorMBeans` is used without `otlpEndpoint` or `influxUrl`, jfr-exporter runs in true MBeans-only mode: it does not start JFR event streaming or metric export, and only keeps the executor JMX MBeans active.
+
 Example: `-javaagent:/path/to/jfr-exporter.jar=debug,tag=service/afterburner`, which will enable
 debug logging and set the tag `service` to `afterburner`.
 
@@ -92,6 +96,7 @@ Usage: java JfrExporter
   --otlpProtocol <http|grpc>
   --otlpSignal <metrics>
   --otlpFormat <protobuf|json>
+  --enableExecutorMBeans
   --influxUrl <influxUrl> 
   --influxDatabase <influxDatabase>
   --influxUser <influxUser> 
@@ -156,6 +161,9 @@ These JFR events are processed:
 
 ForkJoin common-pool monitoring is exported through a lightweight sampler inside jfr-exporter rather than a built-in JFR event. It emits `forkjoin-pool` with `activeThreadCount` as the primary value and `poolSize` plus `queuedTaskCount` as numeric extra fields.
 Custom application executors discovered by the Java agent are sampled the same way and emitted as `executor-pool` with `activeThreadCount` as the primary value plus `poolSize` and `queueSize` as numeric extra fields. The agent discovers these pools by instrumenting common executor factory methods and thread-pool constructors in the injected application.
+
+If `enableExecutorMBeans` is set in javaagent mode, those discovered executors are also exposed as JMX MBeans under `io.perfana.jfr:type=ExecutorPool,name=<pool>`. Each MBean exposes `ActiveThreadCount`, `PoolSize`, `QueueSize`, `PoolName`, `Origin`, `ExecutorClass`, and `Terminated`.
+Using `enableExecutorMBeans` on its own is the lightest option when you only want JMX visibility for discovered executors.
 
 For reference: [list of JFR events](https://sap.github.io/SapMachine/jfrevents/).
 

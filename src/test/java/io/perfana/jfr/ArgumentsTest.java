@@ -26,7 +26,7 @@ class ArgumentsTest {
     @Test
     void parseArgs() {
 
-        String[] args = {"-d", "--processId", "1234", "--otlpEndpoint", "http://localhost:4317"};
+        String[] args = {"-d", "--processId", "1234", "--otlpEndpoint", "http://localhost:4317", "--enableExecutorMBeans"};
 
         Arguments arguments = Arguments.parseArgs(args);
 
@@ -34,12 +34,14 @@ class ArgumentsTest {
         assertEquals(1234, arguments.getProcessId());
         assertTrue(arguments.isDebug());
         assertEquals("http://localhost:4317", arguments.getOtlpEndpoint());
+        assertTrue(arguments.isEnableExecutorMBeans());
+        assertFalse(arguments.isMBeansOnlyMode());
 
     }
 
     @Test
     void parseArgsWithOtlpProtocol() {
-        String[] args = {"--otlpEndpoint", "http://localhost:4318", "--otlpProtocol", "http", "--otlpSignal", "metrics", "--otlpFormat", "json"};
+        String[] args = {"--otlpEndpoint", "http://localhost:4318", "--otlpProtocol", "http", "--otlpSignal", "metrics", "--otlpFormat", "json", "enableExecutorMBeans"};
 
         Arguments arguments = Arguments.parseArgs(args);
 
@@ -48,6 +50,18 @@ class ArgumentsTest {
         assertEquals(OpenTelemetryMeterProvider.OtlpProtocol.HTTP, arguments.getOtlpProtocol());
         assertEquals(OpenTelemetryMeterProvider.OtlpSignal.METRICS, arguments.getOtlpSignal());
         assertEquals(OpenTelemetryMeterProvider.OtlpFormat.JSON, arguments.getOtlpFormat());
+        assertTrue(arguments.isEnableExecutorMBeans());
+        assertFalse(arguments.isMBeansOnlyMode());
+    }
+
+    @Test
+    void parseArgsWithExecutorMBeansOnlyMode() {
+        String[] args = {"--enableExecutorMBeans"};
+
+        Arguments arguments = Arguments.parseArgs(args);
+
+        assertTrue(arguments.isEnableExecutorMBeans());
+        assertTrue(arguments.isMBeansOnlyMode());
     }
 
 }

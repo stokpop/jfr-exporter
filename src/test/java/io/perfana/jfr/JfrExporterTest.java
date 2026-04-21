@@ -17,6 +17,7 @@ package io.perfana.jfr;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class JfrExporterTest {
@@ -46,6 +47,26 @@ class JfrExporterTest {
         assertEquals("http://localhost:4318", strings[3]);
         assertEquals("otlpSignal", strings[4]);
         assertEquals("metrics", strings[5]);
+    }
+
+    @Test
+    void splitAgentArgsWithExecutorMBeansFlag() {
+        String[] strings = JfrExporter.splitAgentArgs("duration=PT30s,enableExecutorMBeans,otlpEndpoint=http://localhost:4318");
+
+        assertEquals(5, strings.length);
+        assertEquals("duration", strings[0]);
+        assertEquals("PT30s", strings[1]);
+        assertEquals("enableExecutorMBeans", strings[2]);
+        assertEquals("otlpEndpoint", strings[3]);
+        assertEquals("http://localhost:4318", strings[4]);
+    }
+
+    @Test
+    void executorMBeansOnlyModeDoesNotAttachToProcessId() {
+        JfrExporter jfrExporter = new JfrExporter();
+        Arguments arguments = Arguments.parseArgs(new String[]{"--processId", "999999", "--duration", "PT0.1S", "--enableExecutorMBeans"});
+
+        assertDoesNotThrow(() -> jfrExporter.start(arguments));
     }
 
 }

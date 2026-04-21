@@ -54,15 +54,24 @@ public class JfrExporter {
 
         log.info("Start JfrExporter with arguments: %s", args);
 
+        if (args.isMBeansOnlyMode()) {
+            startExecutorMBeansOnly(args);
+            return;
+        }
+
         JfrEventHandler eventHandler = new JfrEventHandler();
 
         JfrEventProcessor eventProcessor = createEventProcessor(args);
         ForkJoinPoolMonitor forkJoinPoolMonitor = new ForkJoinPoolMonitor(eventProcessor);
         DiscoveredExecutorMonitor discoveredExecutorMonitor = new DiscoveredExecutorMonitor(eventProcessor);
+        DiscoveredExecutorMBeanMonitor discoveredExecutorMBeanMonitor = args.isEnableExecutorMBeans() ? new DiscoveredExecutorMBeanMonitor() : null;
 
         try {
             forkJoinPoolMonitor.start();
             discoveredExecutorMonitor.start();
+            if (discoveredExecutorMBeanMonitor != null) {
+                discoveredExecutorMBeanMonitor.start();
+            }
 
             CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
             cpuLoadEvent.getEventSettings().forEach(eventHandler::register);
@@ -107,6 +116,9 @@ public class JfrExporter {
                 jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
             }
         } finally {
+            if (discoveredExecutorMBeanMonitor != null) {
+                autoClose(discoveredExecutorMBeanMonitor, "discovered executor MBean monitor");
+            }
             autoClose(discoveredExecutorMonitor, "discovered executor monitor");
             autoClose(forkJoinPoolMonitor, "fork join monitor");
             closeEventProcessor(eventProcessor);
@@ -125,6 +137,44 @@ public class JfrExporter {
         } catch (Exception e) {
             log.error("Error closing %s: %s", description, e.getMessage());
         }
+    }
+
+    private void startExecutorMBeansOnly(Arguments args) {
+        log.info("Start JfrExporter in executor MBeans-only mode: skipping JFR event streaming and metric exporters");
+        if (args.getProcessId() != null) {
+            log.info("Ignoring processId %d in executor MBeans-only mode; use -javaagent to discover application executors", args.getProcessId());
+        }
+
+        DiscoveredExecutorMBeanMonitor discoveredExecutorMBeanMonitor = new DiscoveredExecutorMBeanMonitor();
+        discoveredExecutorMBeanMonitor.start();
+        addShutdownHook(discoveredExecutorMBeanMonitor, "discovered executor MBean monitor");
+
+        if (args.getDuration() != null) {
+            scheduleAutoClose(discoveredExecutorMBeanMonitor, args.getDuration(), "discovered executor MBean monitor");
+        }
+    }
+
+    private static void addShutdownHook(AutoCloseable autoCloseable, String description) {
+        Thread shutdownHook = new Thread(() -> autoClose(autoCloseable, description), "jfr-exporter-shutdown");
+        shutdownHook.setDaemon(true);
+        try {
+            Runtime.getRuntime().addShutdownHook(shutdownHook);
+        } catch (IllegalStateException e) {
+            log.error("Error installing shutdown hook for %s: %s", description, e.getMessage());
+        }
+    }
+
+    private static void scheduleAutoClose(AutoCloseable autoCloseable, java.time.Duration duration, String description) {
+        Thread thread = new Thread(() -> {
+            try {
+                Thread.sleep(duration.toMillis());
+                autoClose(autoCloseable, description);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }, "jfr-exporter-mbeans-only-stop");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private JfrEventProcessor createInfluxEventProcessor(Arguments args) {

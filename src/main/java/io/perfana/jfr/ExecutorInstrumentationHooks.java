@@ -137,6 +137,14 @@ public final class ExecutorInstrumentationHooks {
         return register(new ScheduledThreadPoolExecutor(corePoolSize, threadFactory, handler));
     }
 
+    public static ThreadPoolExecutor registerThreadPoolExecutor(ThreadPoolExecutor executor) {
+        return register(executor);
+    }
+
+    public static ScheduledThreadPoolExecutor registerScheduledThreadPoolExecutor(ScheduledThreadPoolExecutor executor) {
+        return register(executor);
+    }
+
     private static <T extends ThreadPoolExecutor> T register(T executor) {
         return DiscoveredExecutorRegistry.register(executor);
     }

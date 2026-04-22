@@ -29,6 +29,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -95,9 +96,59 @@ class ExecutorInstrumentationTest implements Opcodes {
 
         Class<?> cls = new TestClassLoader().define(internalName.replace('/', '.'), transformed == null ? original : transformed);
         ThreadPoolExecutor executor = (ThreadPoolExecutor) cls.getDeclaredConstructor().newInstance();
+        List<ProcessedJfrEvent> captured = new ArrayList<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
         try {
             assertEquals("com.example.ThreadPoolExecutorSubclass", executor.getClass().getName());
+            try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, java.time.Duration.ofSeconds(1), scheduler)) {
+                monitor.sample();
+                assertEquals(1, captured.size());
+            }
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    void registersThreadPoolExecutorCreatedInsideConstructor() throws Exception {
+        String internalName = "com/example/ConstructorExecutorHolder";
+        byte[] original = generateClassCreatingThreadPoolExecutorInConstructor(internalName);
+        ClassFileTransformer transformer = ExecutorInstrumentation.createTransformer();
+        byte[] transformed = transformer.transform(null, internalName, null, null, original);
+
+        Class<?> cls = new TestClassLoader().define(internalName.replace('/', '.'), transformed == null ? original : transformed);
+        Object instance = cls.getDeclaredConstructor().newInstance();
+        Method getter = cls.getDeclaredMethod("getExecutor");
+        List<ProcessedJfrEvent> captured = new ArrayList<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) getter.invoke(instance);
+        try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, java.time.Duration.ofSeconds(1), scheduler)) {
+            monitor.sample();
+            assertEquals(1, captured.size());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    void registersScheduledThreadPoolExecutorCreatedInsideConstructor() throws Exception {
+        String internalName = "com/example/ScheduledConstructorExecutorHolder";
+        byte[] original = generateClassCreatingScheduledThreadPoolExecutorInConstructor(internalName);
+        ClassFileTransformer transformer = ExecutorInstrumentation.createTransformer();
+        byte[] transformed = transformer.transform(null, internalName, null, null, original);
+
+        Class<?> cls = new TestClassLoader().define(internalName.replace('/', '.'), transformed == null ? original : transformed);
+        Object instance = cls.getDeclaredConstructor().newInstance();
+        Method getter = cls.getDeclaredMethod("getExecutor");
+        List<ProcessedJfrEvent> captured = new ArrayList<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor) getter.invoke(instance);
+        try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, java.time.Duration.ofSeconds(1), scheduler)) {
+            monitor.sample();
+            assertEquals(1, captured.size());
         } finally {
             executor.shutdown();
         }
@@ -196,6 +247,82 @@ class ExecutorInstrumentationTest implements Opcodes {
         ctor.visitInsn(RETURN);
         ctor.visitMaxs(8, 1);
         ctor.visitEnd();
+
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    private static byte[] generateClassCreatingThreadPoolExecutorInConstructor(String internalName) {
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(V17, ACC_PUBLIC, internalName, null, "java/lang/Object", null);
+        cw.visitField(ACC_PRIVATE, "executor", "Ljava/util/concurrent/ThreadPoolExecutor;", null, null).visitEnd();
+
+        MethodVisitor ctor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        ctor.visitCode();
+        ctor.visitVarInsn(ALOAD, 0);
+        ctor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        ctor.visitVarInsn(ALOAD, 0);
+        ctor.visitTypeInsn(NEW, "java/util/concurrent/ThreadPoolExecutor");
+        ctor.visitInsn(DUP);
+        ctor.visitInsn(ICONST_1);
+        ctor.visitInsn(ICONST_1);
+        ctor.visitInsn(LCONST_0);
+        ctor.visitFieldInsn(GETSTATIC, "java/util/concurrent/TimeUnit", "MILLISECONDS", "Ljava/util/concurrent/TimeUnit;");
+        ctor.visitTypeInsn(NEW, "java/util/concurrent/LinkedBlockingQueue");
+        ctor.visitInsn(DUP);
+        ctor.visitMethodInsn(INVOKESPECIAL, "java/util/concurrent/LinkedBlockingQueue", "<init>", "()V", false);
+        ctor.visitMethodInsn(INVOKESPECIAL,
+                "java/util/concurrent/ThreadPoolExecutor",
+                "<init>",
+                "(IIJLjava/util/concurrent/TimeUnit;Ljava/util/concurrent/BlockingQueue;)V",
+                false);
+        ctor.visitFieldInsn(PUTFIELD, internalName, "executor", "Ljava/util/concurrent/ThreadPoolExecutor;");
+        ctor.visitInsn(RETURN);
+        ctor.visitMaxs(9, 1);
+        ctor.visitEnd();
+
+        MethodVisitor getter = cw.visitMethod(ACC_PUBLIC, "getExecutor", "()Ljava/util/concurrent/ThreadPoolExecutor;", null, null);
+        getter.visitCode();
+        getter.visitVarInsn(ALOAD, 0);
+        getter.visitFieldInsn(GETFIELD, internalName, "executor", "Ljava/util/concurrent/ThreadPoolExecutor;");
+        getter.visitInsn(ARETURN);
+        getter.visitMaxs(1, 1);
+        getter.visitEnd();
+
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    private static byte[] generateClassCreatingScheduledThreadPoolExecutorInConstructor(String internalName) {
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(V17, ACC_PUBLIC, internalName, null, "java/lang/Object", null);
+        cw.visitField(ACC_PRIVATE, "executor", "Ljava/util/concurrent/ScheduledThreadPoolExecutor;", null, null).visitEnd();
+
+        MethodVisitor ctor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        ctor.visitCode();
+        ctor.visitVarInsn(ALOAD, 0);
+        ctor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        ctor.visitVarInsn(ALOAD, 0);
+        ctor.visitTypeInsn(NEW, "java/util/concurrent/ScheduledThreadPoolExecutor");
+        ctor.visitInsn(DUP);
+        ctor.visitInsn(ICONST_1);
+        ctor.visitMethodInsn(INVOKESPECIAL,
+                "java/util/concurrent/ScheduledThreadPoolExecutor",
+                "<init>",
+                "(I)V",
+                false);
+        ctor.visitFieldInsn(PUTFIELD, internalName, "executor", "Ljava/util/concurrent/ScheduledThreadPoolExecutor;");
+        ctor.visitInsn(RETURN);
+        ctor.visitMaxs(4, 1);
+        ctor.visitEnd();
+
+        MethodVisitor getter = cw.visitMethod(ACC_PUBLIC, "getExecutor", "()Ljava/util/concurrent/ScheduledThreadPoolExecutor;", null, null);
+        getter.visitCode();
+        getter.visitVarInsn(ALOAD, 0);
+        getter.visitFieldInsn(GETFIELD, internalName, "executor", "Ljava/util/concurrent/ScheduledThreadPoolExecutor;");
+        getter.visitInsn(ARETURN);
+        getter.visitMaxs(1, 1);
+        getter.visitEnd();
 
         cw.visitEnd();
         return cw.toByteArray();

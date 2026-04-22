@@ -65,12 +65,16 @@ public class JfrExporter {
         ForkJoinPoolMonitor forkJoinPoolMonitor = new ForkJoinPoolMonitor(eventProcessor);
         DiscoveredExecutorMonitor discoveredExecutorMonitor = new DiscoveredExecutorMonitor(eventProcessor);
         DiscoveredExecutorMBeanMonitor discoveredExecutorMBeanMonitor = args.isEnableExecutorMBeans() ? new DiscoveredExecutorMBeanMonitor() : null;
+        ForkJoinPoolMBeanMonitor forkJoinPoolMBeanMonitor = args.isEnableExecutorMBeans() ? new ForkJoinPoolMBeanMonitor() : null;
 
         try {
             forkJoinPoolMonitor.start();
             discoveredExecutorMonitor.start();
             if (discoveredExecutorMBeanMonitor != null) {
                 discoveredExecutorMBeanMonitor.start();
+            }
+            if (forkJoinPoolMBeanMonitor != null) {
+                forkJoinPoolMBeanMonitor.start();
             }
 
             CpuLoadEvent cpuLoadEvent = new CpuLoadEvent(eventProcessor);
@@ -116,6 +120,9 @@ public class JfrExporter {
                 jfrConnector.connectRemoteJvm(args.getProcessId(), args.getDuration());
             }
         } finally {
+            if (forkJoinPoolMBeanMonitor != null) {
+                autoClose(forkJoinPoolMBeanMonitor, "fork join MBean monitor");
+            }
             if (discoveredExecutorMBeanMonitor != null) {
                 autoClose(discoveredExecutorMBeanMonitor, "discovered executor MBean monitor");
             }
@@ -146,11 +153,15 @@ public class JfrExporter {
         }
 
         DiscoveredExecutorMBeanMonitor discoveredExecutorMBeanMonitor = new DiscoveredExecutorMBeanMonitor();
+        ForkJoinPoolMBeanMonitor forkJoinPoolMBeanMonitor = new ForkJoinPoolMBeanMonitor();
         discoveredExecutorMBeanMonitor.start();
+        forkJoinPoolMBeanMonitor.start();
         addShutdownHook(discoveredExecutorMBeanMonitor, "discovered executor MBean monitor");
+        addShutdownHook(forkJoinPoolMBeanMonitor, "fork join MBean monitor");
 
         if (args.getDuration() != null) {
             scheduleAutoClose(discoveredExecutorMBeanMonitor, args.getDuration(), "discovered executor MBean monitor");
+            scheduleAutoClose(forkJoinPoolMBeanMonitor, args.getDuration(), "fork join MBean monitor");
         }
     }
 

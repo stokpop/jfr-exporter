@@ -162,7 +162,9 @@ These JFR events are processed:
 ForkJoin common-pool monitoring is exported through a lightweight sampler inside jfr-exporter rather than a built-in JFR event. It emits `forkjoin-pool` with `activeThreadCount` as the primary value and `poolSize` plus `queuedTaskCount` as numeric extra fields.
 Custom application executors discovered by the Java agent are sampled the same way and emitted as `executor-pool` with `activeThreadCount` as the primary value plus `poolSize` and `queueSize` as numeric extra fields. The agent discovers these pools by instrumenting common executor factory methods and thread-pool constructors in the injected application.
 
-If `enableExecutorMBeans` is set in javaagent mode, those discovered executors are also exposed as JMX MBeans under `io.perfana.jfr:type=ExecutorPool,name=<pool>`. Each MBean exposes `ActiveThreadCount`, `PoolSize`, `QueueSize`, `PoolName`, `Origin`, `ExecutorClass`, and `Terminated`.
+If `enableExecutorMBeans` is set in javaagent mode, those discovered executors are also exposed as JMX MBeans under `io.perfana.jfr:type=ExecutorPool,name=<pool>`. Each MBean exposes `ActiveThreadCount`, `PoolSize`, `CorePoolSize`, `MaximumPoolSize`, `LargestPoolSize`, `QueueSize`, `RemainingQueueCapacity`, `TaskCount`, `CompletedTaskCount`, `QueueType`, `IsScheduledExecutor`, `PoolName`, `Origin`, `ExecutorClass`, and `Terminated`.
+For `ScheduledThreadPoolExecutor`, `QueueSize` may include delayed or periodic tasks waiting for their trigger time, not only immediately runnable backlog. `IsScheduledExecutor` and `QueueType` help distinguish that case.
+The common ForkJoin pool is also exposed as `io.perfana.jfr:type=ForkJoinPool,name=common` with attributes such as `Parallelism`, `PoolSize`, `ActiveThreadCount`, `RunningThreadCount`, `QueuedTaskCount`, `QueuedSubmissionCount`, `StealCount`, and `Quiescent`.
 Using `enableExecutorMBeans` on its own is the lightest option when you only want JMX visibility for discovered executors.
 
 For reference: [list of JFR events](https://sap.github.io/SapMachine/jfrevents/).

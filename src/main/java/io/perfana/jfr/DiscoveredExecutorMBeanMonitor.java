@@ -32,8 +32,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -172,9 +174,17 @@ final class DiscoveredExecutorMBeanMonitor implements AutoCloseable {
                         new MBeanAttributeInfo("PoolName", String.class.getName(), "Unique discovered executor pool name", true, false, false),
                         new MBeanAttributeInfo("Origin", String.class.getName(), "Call site where the executor was discovered", true, false, false),
                         new MBeanAttributeInfo("ExecutorClass", String.class.getName(), "Executor implementation class", true, false, false),
+                        new MBeanAttributeInfo("QueueType", String.class.getName(), "Queue implementation class", true, false, false),
+                        new MBeanAttributeInfo("IsScheduledExecutor", Boolean.TYPE.getName(), "Whether this executor is a ScheduledThreadPoolExecutor", true, false, true),
                         new MBeanAttributeInfo("ActiveThreadCount", Integer.TYPE.getName(), "Threads currently executing tasks", true, false, false),
                         new MBeanAttributeInfo("PoolSize", Integer.TYPE.getName(), "Current number of threads in the pool", true, false, false),
-                        new MBeanAttributeInfo("QueueSize", Integer.TYPE.getName(), "Number of queued tasks", true, false, false),
+                        new MBeanAttributeInfo("CorePoolSize", Integer.TYPE.getName(), "Configured core pool size", true, false, false),
+                        new MBeanAttributeInfo("MaximumPoolSize", Integer.TYPE.getName(), "Configured maximum pool size", true, false, false),
+                        new MBeanAttributeInfo("LargestPoolSize", Integer.TYPE.getName(), "Largest number of threads ever simultaneously in the pool", true, false, false),
+                        new MBeanAttributeInfo("QueueSize", Integer.TYPE.getName(), "Current number of queued tasks; for scheduled executors this may include delayed tasks waiting for their trigger time", true, false, false),
+                        new MBeanAttributeInfo("RemainingQueueCapacity", Integer.TYPE.getName(), "Remaining queue capacity if bounded; for unbounded queues this may be very large", true, false, false),
+                        new MBeanAttributeInfo("TaskCount", Long.TYPE.getName(), "Approximate total number of tasks ever scheduled for execution", true, false, false),
+                        new MBeanAttributeInfo("CompletedTaskCount", Long.TYPE.getName(), "Approximate total number of tasks completed", true, false, false),
                         new MBeanAttributeInfo("Terminated", Boolean.TYPE.getName(), "Whether the executor has terminated", true, false, true)
                 },
                 null,
@@ -199,9 +209,17 @@ final class DiscoveredExecutorMBeanMonitor implements AutoCloseable {
                 case "PoolName" -> registration.poolName();
                 case "Origin" -> registration.origin();
                 case "ExecutorClass" -> registration.executorClass();
+                case "QueueType" -> queueType();
+                case "IsScheduledExecutor" -> isScheduledExecutor();
                 case "ActiveThreadCount" -> activeThreadCount();
                 case "PoolSize" -> poolSize();
+                case "CorePoolSize" -> corePoolSize();
+                case "MaximumPoolSize" -> maximumPoolSize();
+                case "LargestPoolSize" -> largestPoolSize();
                 case "QueueSize" -> queueSize();
+                case "RemainingQueueCapacity" -> remainingQueueCapacity();
+                case "TaskCount" -> taskCount();
+                case "CompletedTaskCount" -> completedTaskCount();
                 case "Terminated" -> terminated();
                 default -> throw new AttributeNotFoundException(attribute);
             };
@@ -258,9 +276,53 @@ final class DiscoveredExecutorMBeanMonitor implements AutoCloseable {
             return executor == null ? 0 : executor.getQueue().size();
         }
 
+        private String queueType() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? "<unknown>" : queue(executor).getClass().getName();
+        }
+
+        private boolean isScheduledExecutor() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor instanceof ScheduledThreadPoolExecutor;
+        }
+
+        private int corePoolSize() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0 : executor.getCorePoolSize();
+        }
+
+        private int maximumPoolSize() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0 : executor.getMaximumPoolSize();
+        }
+
+        private int largestPoolSize() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0 : executor.getLargestPoolSize();
+        }
+
+        private int remainingQueueCapacity() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0 : queue(executor).remainingCapacity();
+        }
+
+        private long taskCount() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0L : executor.getTaskCount();
+        }
+
+        private long completedTaskCount() {
+            ThreadPoolExecutor executor = executorReference.get();
+            return executor == null ? 0L : executor.getCompletedTaskCount();
+        }
+
         private boolean terminated() {
             ThreadPoolExecutor executor = executorReference.get();
             return executor == null || executor.isTerminated();
+        }
+
+        private static BlockingQueue<Runnable> queue(ThreadPoolExecutor executor) {
+            return executor.getQueue();
         }
     }
 }

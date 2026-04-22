@@ -6,6 +6,9 @@
 * Added `otlpFormat=json` support for OTLP/HTTP metrics export
 * Added optional `enableExecutorMBeans` support to expose discovered executor pools through JMX
 * Added true executor MBeans-only mode when `enableExecutorMBeans` is used without OTLP or Influx configuration
+* Added extra executor MBean counters such as queue type, scheduled-executor hint, pool size limits, and task counters to make queued work easier to interpret
+* Added JMX exposure for the common ForkJoinPool under `io.perfana.jfr:type=ForkJoinPool,name=common`
+* Simplified the common ForkJoinPool JMX MBean by removing low-value `AsyncMode` and `Terminated` attributes
 
 ### v0.5.0: July 2024
 * Deprecated the application argument, use service tag instead

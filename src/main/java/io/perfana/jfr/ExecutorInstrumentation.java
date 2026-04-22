@@ -23,9 +23,11 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FrameNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LineNumberNode;
+import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
@@ -85,7 +87,7 @@ public final class ExecutorInstrumentation {
 
             boolean changed = false;
             for (MethodNode method : classNode.methods) {
-                if (rewriteMethod(method)) {
+                if (rewriteMethod(classNode, method)) {
                     changed = true;
                 }
             }
@@ -109,7 +111,7 @@ public final class ExecutorInstrumentation {
                     || className.startsWith("io/perfana/jfr/");
         }
 
-        private static boolean rewriteMethod(MethodNode method) {
+        private static boolean rewriteMethod(ClassNode classNode, MethodNode method) {
             boolean changed = false;
             boolean constructorMethod = "<init>".equals(method.name);
 
@@ -121,6 +123,8 @@ public final class ExecutorInstrumentation {
                         changed = true;
                     } else if (!constructorMethod && rewriteExecutorConstructor(method.instructions, methodInsnNode)) {
                         changed = true;
+                    } else if (constructorMethod && registerConstructorCreatedExecutor(classNode, method.instructions, methodInsnNode)) {
+                        changed = true;
                     }
                 }
 
@@ -128,6 +132,45 @@ public final class ExecutorInstrumentation {
             }
 
             return changed;
+        }
+
+        private static boolean registerConstructorCreatedExecutor(ClassNode classNode,
+                                                                 org.objectweb.asm.tree.InsnList instructions,
+                                                                 MethodInsnNode instruction) {
+            if (instruction.getOpcode() != Opcodes.INVOKESPECIAL || !"<init>".equals(instruction.name)) {
+                return false;
+            }
+
+            String hookName = registerHookName(instruction.owner);
+            if (hookName == null) {
+                return false;
+            }
+
+            if (isDirectAllocation(instruction.owner, instruction)) {
+                instructions.insert(instruction, new MethodInsnNode(
+                        Opcodes.INVOKESTATIC,
+                        HOOKS_OWNER,
+                        hookName,
+                        "(L" + instruction.owner + ";)L" + instruction.owner + ";",
+                        false));
+                return true;
+            }
+
+            if (instruction.owner.equals(classNode.superName)) {
+                org.objectweb.asm.tree.InsnList registration = new org.objectweb.asm.tree.InsnList();
+                registration.add(new VarInsnNode(Opcodes.ALOAD, 0));
+                registration.add(new MethodInsnNode(
+                        Opcodes.INVOKESTATIC,
+                        HOOKS_OWNER,
+                        hookName,
+                        "(L" + instruction.owner + ";)L" + instruction.owner + ";",
+                        false));
+                registration.add(new InsnNode(Opcodes.POP));
+                instructions.insert(instruction, registration);
+                return true;
+            }
+
+            return false;
         }
 
         private static boolean rewriteExecutorFactoryCall(MethodInsnNode instruction) {
@@ -204,6 +247,16 @@ public final class ExecutorInstrumentation {
             return null;
         }
 
+        private static String registerHookName(String owner) {
+            if (THREAD_POOL_EXECUTOR_OWNER.equals(owner)) {
+                return "registerThreadPoolExecutor";
+            }
+            if (SCHEDULED_THREAD_POOL_EXECUTOR_OWNER.equals(owner)) {
+                return "registerScheduledThreadPoolExecutor";
+            }
+            return null;
+        }
+
         private static void removeAllocationSequence(org.objectweb.asm.tree.InsnList instructions,
                                                      String owner,
                                                      MethodInsnNode constructorCall) {
@@ -233,6 +286,17 @@ public final class ExecutorInstrumentation {
                 current = current.getNext();
             }
             return current;
+        }
+
+        private static boolean isDirectAllocation(String owner, MethodInsnNode constructorCall) {
+            for (AbstractInsnNode cursor = constructorCall.getPrevious(); cursor != null; cursor = cursor.getPrevious()) {
+                if (cursor instanceof TypeInsnNode typeInsnNode
+                        && typeInsnNode.getOpcode() == Opcodes.NEW
+                        && owner.equals(typeInsnNode.desc)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static String constructorDescriptorWithReturnType(String owner, String constructorDescriptor) {

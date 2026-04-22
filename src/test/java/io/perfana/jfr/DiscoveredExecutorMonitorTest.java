@@ -97,6 +97,42 @@ class DiscoveredExecutorMonitorTest {
     }
 
     @Test
+    void samplesRegisteredTomcatExecutors() throws Exception {
+        List<ProcessedJfrEvent> captured = new ArrayList<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        org.apache.tomcat.util.threads.ThreadPoolExecutor executor =
+                new org.apache.tomcat.util.threads.ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        CountDownLatch running = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+
+        try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, Duration.ofSeconds(1), scheduler)) {
+            DiscoveredExecutorRegistry.register(executor);
+            executor.submit(() -> {
+                running.countDown();
+                try {
+                    release.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            executor.submit(() -> { });
+
+            assertTrue(running.await(5, TimeUnit.SECONDS));
+            monitor.sample();
+
+            assertEquals(1, captured.size());
+            ProcessedJfrEvent event = captured.get(0);
+            assertEquals(executor.getClass().getName(), event.tags().get("executorClass"));
+            assertEquals(1, event.value().intValue());
+            assertTrue(((Number) event.extraFields().get("queueSize")).longValue() >= 1L);
+        } finally {
+            release.countDown();
+            executor.shutdown();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
+    }
+
+    @Test
     void startSchedulesSampling() throws InterruptedException {
         List<ProcessedJfrEvent> captured = new ArrayList<>();
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

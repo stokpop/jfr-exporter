@@ -164,6 +164,7 @@ Custom application executors discovered by the Java agent are sampled the same w
 
 If `enableExecutorMBeans` is set in javaagent mode, those discovered executors are also exposed as JMX MBeans under `io.perfana.jfr:type=ExecutorPool,name=<pool>`. Each MBean exposes `ActiveThreadCount`, `PoolSize`, `CorePoolSize`, `MaximumPoolSize`, `LargestPoolSize`, `QueueSize`, `RemainingQueueCapacity`, `TaskCount`, `CompletedTaskCount`, `QueueType`, `IsScheduledExecutor`, `PoolName`, `Origin`, `ExecutorClass`, and `Terminated`.
 For `ScheduledThreadPoolExecutor`, `QueueSize` may include delayed or periodic tasks waiting for their trigger time, not only immediately runnable backlog. `IsScheduledExecutor` and `QueueType` help distinguish that case.
+Tomcat executors backed by `org.apache.tomcat.util.threads.ThreadPoolExecutor` are also discovered by the Java agent and exposed through the same `io.perfana.jfr:type=ExecutorPool,...` MBeans, even when Tomcat's own `Catalina:*` MBeans are not enabled.
 The common ForkJoin pool is also exposed as `io.perfana.jfr:type=ForkJoinPool,name=common` with attributes such as `Parallelism`, `PoolSize`, `ActiveThreadCount`, `RunningThreadCount`, `QueuedTaskCount`, `QueuedSubmissionCount`, `StealCount`, and `Quiescent`.
 Using `enableExecutorMBeans` on its own is the lightest option when you only want JMX visibility for discovered executors.
 

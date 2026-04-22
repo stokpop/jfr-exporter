@@ -145,6 +145,10 @@ public final class ExecutorInstrumentationHooks {
         return register(executor);
     }
 
+    public static Object registerExecutor(Object executor) {
+        return DiscoveredExecutorRegistry.register(executor);
+    }
+
     private static <T extends ThreadPoolExecutor> T register(T executor) {
         return DiscoveredExecutorRegistry.register(executor);
     }

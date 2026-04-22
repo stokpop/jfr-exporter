@@ -25,9 +25,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -149,6 +147,29 @@ class ExecutorInstrumentationTest implements Opcodes {
         try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, java.time.Duration.ofSeconds(1), scheduler)) {
             monitor.sample();
             assertEquals(1, captured.size());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    void registersTomcatThreadPoolExecutorConstructedInApplicationCode() throws Exception {
+        String internalName = "com/example/TomcatThreadPoolExecutorFactory";
+        byte[] original = generateClassCallingTomcatThreadPoolExecutorConstructor(internalName);
+        ClassFileTransformer transformer = ExecutorInstrumentation.createTransformer();
+        byte[] transformed = transformer.transform(null, internalName, null, null, original);
+
+        Class<?> cls = new TestClassLoader().define(internalName.replace('/', '.'), transformed == null ? original : transformed);
+        Object instance = cls.getDeclaredConstructor().newInstance();
+        Method create = cls.getDeclaredMethod("create");
+        List<ProcessedJfrEvent> captured = new ArrayList<>();
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        java.util.concurrent.ExecutorService executor = (java.util.concurrent.ExecutorService) create.invoke(instance);
+        try (DiscoveredExecutorMonitor monitor = new DiscoveredExecutorMonitor(captured::add, java.time.Duration.ofSeconds(1), scheduler)) {
+            monitor.sample();
+            assertEquals(1, captured.size());
+            assertEquals("org.apache.tomcat.util.threads.ThreadPoolExecutor", captured.get(0).tags().get("executorClass"));
         } finally {
             executor.shutdown();
         }
@@ -323,6 +344,46 @@ class ExecutorInstrumentationTest implements Opcodes {
         getter.visitInsn(ARETURN);
         getter.visitMaxs(1, 1);
         getter.visitEnd();
+
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    private static byte[] generateClassCallingTomcatThreadPoolExecutorConstructor(String internalName) {
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(V17, ACC_PUBLIC, internalName, null, "java/lang/Object", null);
+
+        MethodVisitor ctor = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+        ctor.visitCode();
+        ctor.visitVarInsn(ALOAD, 0);
+        ctor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+        ctor.visitInsn(RETURN);
+        ctor.visitMaxs(1, 1);
+        ctor.visitEnd();
+
+        MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "create", "()Ljava/util/concurrent/ExecutorService;", null, null);
+        mv.visitCode();
+        mv.visitTypeInsn(NEW, "org/apache/tomcat/util/threads/ThreadPoolExecutor");
+        mv.visitInsn(DUP);
+        mv.visitInsn(ICONST_1);
+        mv.visitInsn(ICONST_1);
+        mv.visitInsn(LCONST_0);
+        mv.visitFieldInsn(GETSTATIC,
+                "java/util/concurrent/TimeUnit",
+                "MILLISECONDS",
+                "Ljava/util/concurrent/TimeUnit;");
+        mv.visitTypeInsn(NEW, "java/util/concurrent/LinkedBlockingQueue");
+        mv.visitInsn(DUP);
+        mv.visitMethodInsn(INVOKESPECIAL, "java/util/concurrent/LinkedBlockingQueue", "<init>", "()V", false);
+        mv.visitMethodInsn(INVOKESPECIAL,
+                "org/apache/tomcat/util/threads/ThreadPoolExecutor",
+                "<init>",
+                "(IIJLjava/util/concurrent/TimeUnit;Ljava/util/concurrent/BlockingQueue;)V",
+                false);
+        mv.visitTypeInsn(CHECKCAST, "java/util/concurrent/ExecutorService");
+        mv.visitInsn(ARETURN);
+        mv.visitMaxs(8, 1);
+        mv.visitEnd();
 
         cw.visitEnd();
         return cw.toByteArray();

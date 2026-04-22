@@ -70,8 +70,8 @@ public final class DiscoveredExecutorMonitor implements AutoCloseable {
                     "executorClass", registration.executorClass()
             );
             Map<String, Object> extraFields = Map.of(
-                    "poolSize", executor.getPoolSize(),
-                    "queueSize", executor.getQueue().size()
+                    "poolSize", executor.poolSize(),
+                    "queueSize", executor.queueSize()
             );
 
             eventProcessor.processEvent(ProcessedJfrEvent.of(
@@ -79,7 +79,7 @@ public final class DiscoveredExecutorMonitor implements AutoCloseable {
                     MEASUREMENT_NAME,
                     tags,
                     "activeThreadCount",
-                    executor.getActiveCount(),
+                    executor.activeThreadCount(),
                     extraFields
             ));
         }

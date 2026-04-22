@@ -42,6 +42,7 @@ public final class ExecutorInstrumentation {
     private static final String EXECUTORS_OWNER = "java/util/concurrent/Executors";
     private static final String THREAD_POOL_EXECUTOR_OWNER = "java/util/concurrent/ThreadPoolExecutor";
     private static final String SCHEDULED_THREAD_POOL_EXECUTOR_OWNER = "java/util/concurrent/ScheduledThreadPoolExecutor";
+    private static final String TOMCAT_THREAD_POOL_EXECUTOR_OWNER = "org/apache/tomcat/util/threads/ThreadPoolExecutor";
     private static final String HOOKS_OWNER = "io/perfana/jfr/ExecutorInstrumentationHooks";
 
     private ExecutorInstrumentation() {
@@ -123,7 +124,7 @@ public final class ExecutorInstrumentation {
                         changed = true;
                     } else if (!constructorMethod && rewriteExecutorConstructor(method.instructions, methodInsnNode)) {
                         changed = true;
-                    } else if (constructorMethod && registerConstructorCreatedExecutor(classNode, method.instructions, methodInsnNode)) {
+                    } else if (registerConstructedExecutor(classNode, method.instructions, methodInsnNode, constructorMethod)) {
                         changed = true;
                     }
                 }
@@ -134,9 +135,10 @@ public final class ExecutorInstrumentation {
             return changed;
         }
 
-        private static boolean registerConstructorCreatedExecutor(ClassNode classNode,
-                                                                 org.objectweb.asm.tree.InsnList instructions,
-                                                                 MethodInsnNode instruction) {
+        private static boolean registerConstructedExecutor(ClassNode classNode,
+                                                          org.objectweb.asm.tree.InsnList instructions,
+                                                          MethodInsnNode instruction,
+                                                          boolean constructorMethod) {
             if (instruction.getOpcode() != Opcodes.INVOKESPECIAL || !"<init>".equals(instruction.name)) {
                 return false;
             }
@@ -146,24 +148,31 @@ public final class ExecutorInstrumentation {
                 return false;
             }
 
+            boolean objectHook = usesObjectHook(instruction.owner);
+
             if (isDirectAllocation(instruction.owner, instruction)) {
-                instructions.insert(instruction, new MethodInsnNode(
+                org.objectweb.asm.tree.InsnList registration = new org.objectweb.asm.tree.InsnList();
+                registration.add(new MethodInsnNode(
                         Opcodes.INVOKESTATIC,
                         HOOKS_OWNER,
                         hookName,
-                        "(L" + instruction.owner + ";)L" + instruction.owner + ";",
+                        objectHook ? "(Ljava/lang/Object;)Ljava/lang/Object;" : "(L" + instruction.owner + ";)L" + instruction.owner + ";",
                         false));
+                if (objectHook) {
+                    registration.add(new TypeInsnNode(Opcodes.CHECKCAST, instruction.owner));
+                }
+                instructions.insert(instruction, registration);
                 return true;
             }
 
-            if (instruction.owner.equals(classNode.superName)) {
+            if (constructorMethod && instruction.owner.equals(classNode.superName)) {
                 org.objectweb.asm.tree.InsnList registration = new org.objectweb.asm.tree.InsnList();
                 registration.add(new VarInsnNode(Opcodes.ALOAD, 0));
                 registration.add(new MethodInsnNode(
                         Opcodes.INVOKESTATIC,
                         HOOKS_OWNER,
                         hookName,
-                        "(L" + instruction.owner + ";)L" + instruction.owner + ";",
+                        objectHook ? "(Ljava/lang/Object;)Ljava/lang/Object;" : "(L" + instruction.owner + ";)L" + instruction.owner + ";",
                         false));
                 registration.add(new InsnNode(Opcodes.POP));
                 instructions.insert(instruction, registration);
@@ -254,7 +263,14 @@ public final class ExecutorInstrumentation {
             if (SCHEDULED_THREAD_POOL_EXECUTOR_OWNER.equals(owner)) {
                 return "registerScheduledThreadPoolExecutor";
             }
+            if (TOMCAT_THREAD_POOL_EXECUTOR_OWNER.equals(owner)) {
+                return "registerExecutor";
+            }
             return null;
+        }
+
+        private static boolean usesObjectHook(String owner) {
+            return TOMCAT_THREAD_POOL_EXECUTOR_OWNER.equals(owner);
         }
 
         private static void removeAllocationSequence(org.objectweb.asm.tree.InsnList instructions,

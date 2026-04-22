@@ -9,6 +9,7 @@
 * Added extra executor MBean counters such as queue type, scheduled-executor hint, pool size limits, and task counters to make queued work easier to interpret
 * Added JMX exposure for the common ForkJoinPool under `io.perfana.jfr:type=ForkJoinPool,name=common`
 * Simplified the common ForkJoinPool JMX MBean by removing low-value `AsyncMode` and `Terminated` attributes
+* Extended agent-based executor discovery and JMX exposure to Tomcat `org.apache.tomcat.util.threads.ThreadPoolExecutor` pools
 
 ### v0.5.0: July 2024
 * Deprecated the application argument, use service tag instead

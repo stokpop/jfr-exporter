@@ -27,17 +27,13 @@ import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import java.lang.management.ManagementFactory;
-import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -192,11 +188,11 @@ final class DiscoveredExecutorMBeanMonitor implements AutoCloseable {
                 null
         );
 
-        private final WeakReference<ThreadPoolExecutor> executorReference;
+        private final MonitoredExecutor executor;
         private final DiscoveredExecutorRegistry.ExecutorRegistration registration;
 
         private ExecutorPoolDynamicMBean(DiscoveredExecutorRegistry.RegisteredExecutor registeredExecutor) {
-            this.executorReference = new WeakReference<>(registeredExecutor.executor());
+            this.executor = registeredExecutor.executor();
             this.registration = registeredExecutor.registration();
         }
 
@@ -262,67 +258,51 @@ final class DiscoveredExecutorMBeanMonitor implements AutoCloseable {
         }
 
         private int activeThreadCount() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getActiveCount();
+            return executor.activeThreadCount();
         }
 
         private int poolSize() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getPoolSize();
+            return executor.poolSize();
         }
 
         private int queueSize() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getQueue().size();
+            return executor.queueSize();
         }
 
         private String queueType() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? "<unknown>" : queue(executor).getClass().getName();
+            return executor.queueType();
         }
 
         private boolean isScheduledExecutor() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor instanceof ScheduledThreadPoolExecutor;
+            return executor.isScheduledExecutor();
         }
 
         private int corePoolSize() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getCorePoolSize();
+            return executor.corePoolSize();
         }
 
         private int maximumPoolSize() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getMaximumPoolSize();
+            return executor.maximumPoolSize();
         }
 
         private int largestPoolSize() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : executor.getLargestPoolSize();
+            return executor.largestPoolSize();
         }
 
         private int remainingQueueCapacity() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0 : queue(executor).remainingCapacity();
+            return executor.remainingQueueCapacity();
         }
 
         private long taskCount() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0L : executor.getTaskCount();
+            return executor.taskCount();
         }
 
         private long completedTaskCount() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null ? 0L : executor.getCompletedTaskCount();
+            return executor.completedTaskCount();
         }
 
         private boolean terminated() {
-            ThreadPoolExecutor executor = executorReference.get();
-            return executor == null || executor.isTerminated();
-        }
-
-        private static BlockingQueue<Runnable> queue(ThreadPoolExecutor executor) {
-            return executor.getQueue();
+            return executor.isTerminated();
         }
     }
 }

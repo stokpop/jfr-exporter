@@ -19,30 +19,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class DiscoveredExecutorRegistry {
 
     private static final Logger log = Logger.getLogger(DiscoveredExecutorRegistry.class);
     private static final StackWalker STACK_WALKER = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE);
-    private static final Map<ThreadPoolExecutor, ExecutorRegistration> EXECUTORS = new WeakHashMap<>();
+    private static final Map<Object, RegisteredExecutor> EXECUTORS = new WeakHashMap<>();
     private static final AtomicInteger NEXT_ID = new AtomicInteger(1);
 
     private DiscoveredExecutorRegistry() {
     }
 
-    static <T extends ExecutorService> T register(T executor) {
-        if (!(executor instanceof ThreadPoolExecutor threadPoolExecutor)) {
+    static <T> T register(T executor) {
+        MonitoredExecutor monitoredExecutor = MonitoredExecutor.create(executor);
+        if (monitoredExecutor == null) {
             return executor;
         }
 
         synchronized (EXECUTORS) {
-            if (!EXECUTORS.containsKey(threadPoolExecutor)) {
+            if (!EXECUTORS.containsKey(executor)) {
                 String origin = callerOrigin();
                 String poolName = poolName(origin);
-                EXECUTORS.put(threadPoolExecutor, new ExecutorRegistration(poolName, origin, threadPoolExecutor.getClass().getName()));
+                EXECUTORS.put(executor, new RegisteredExecutor(monitoredExecutor, new ExecutorRegistration(poolName, origin, monitoredExecutor.executorClass())));
                 log.info("Registered executor for monitoring: pool=%s, origin=%s", poolName, origin);
             }
         }
@@ -53,8 +52,8 @@ final class DiscoveredExecutorRegistry {
     static List<RegisteredExecutor> snapshot() {
         List<RegisteredExecutor> registrations = new ArrayList<>();
         synchronized (EXECUTORS) {
-            EXECUTORS.entrySet().removeIf(entry -> entry.getKey().isTerminated());
-            EXECUTORS.forEach((executor, registration) -> registrations.add(new RegisteredExecutor(executor, registration)));
+            EXECUTORS.entrySet().removeIf(entry -> entry.getValue().executor().isTerminated());
+            registrations.addAll(EXECUTORS.values());
         }
         return registrations;
     }
@@ -87,7 +86,7 @@ final class DiscoveredExecutorRegistry {
         return sanitized.isBlank() ? "executor" : sanitized;
     }
 
-    record RegisteredExecutor(ThreadPoolExecutor executor, ExecutorRegistration registration) {
+    record RegisteredExecutor(MonitoredExecutor executor, ExecutorRegistration registration) {
     }
 
     record ExecutorRegistration(String poolName, String origin, String executorClass) {

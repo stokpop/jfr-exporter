@@ -30,7 +30,7 @@ jobs:
           java-version: '17'
 
       - name: get tag
-        uses: olegtarasov/get-tag@v2.1.2
+        uses: olegtarasov/get-tag@v2.1.4
         id: tagName
         with:
           tagRegex: "(.*)"
@@ -38,7 +38,7 @@ jobs:
       - name: Maven build
         run: ./mvnw -Drevision=${{ env.GIT_TAG_NAME }} clean package
 
-      - uses: ncipollo/release-action@v1
+      - uses: ncipollo/release-action@v1.21.0
         with:
           artifacts: "target/jfr-exporter-${{ env.GIT_TAG_NAME }}.jar"
           bodyFile: CHANGELOG.md

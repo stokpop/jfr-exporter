@@ -62,6 +62,7 @@ public class InfluxWriterClient implements InfluxWriter, AutoCloseable {
 
         Point point = Point.measurement(event.measurementName())
                 .addTags(tags)
+                .addTags(event.tags())
                 .addField(event.field(), event.value());
 
         if (!event.stacktrace().isEmpty()) {

@@ -4,13 +4,10 @@ Send JFR events to time series databases and OpenTelemetry collectors.
 
 Now in "beta", feedback welcome!
 
-See tutorial in this [blog post](https://perfana.io/continuous-deep-dive-with-jfr-events/).
-
-[![JfrExporter tutarial video](https://img.youtube.com/vi/rAq2Xo-VoVc/0.jpg)](https://www.youtube.com/watch?v=rAq2Xo-VoVc)
-
 Makes use of [JFR Event Streaming](https://openjdk.org/jeps/349) as found in hotspot based JDK 14+.
 
-The InfluxDB time series database can be used as storage for the metrics, and an OTLP gRPC collector can ingest the same JFR data as OpenTelemetry metrics.
+The InfluxDB time series database can be used as storage for the metrics,
+and an OTLP gRPC collector can ingest the same JFR data as OpenTelemetry metrics.
 
 The metrics are displayed in a Grafana dashboard, as shown in the following screenshots.
 

@@ -51,6 +51,8 @@ public class InfluxWriterNative implements InfluxWriter {
 
     private final boolean enableStacktraces;
 
+    private final Map<String, String> globalTags;
+
     private final String generatedTags;
 
     public InfluxWriterNative(InfluxWriterConfig config) {
@@ -66,7 +68,8 @@ public class InfluxWriterNative implements InfluxWriter {
         this.enableStacktraces = config.enableStacktraces();
 
         // prefixed with comma if tags is not empty
-        this.generatedTags = prepareTagsForInflux(config.tags());
+        this.globalTags = config.tags();
+        this.generatedTags = prepareTagsForInflux(globalTags);
     }
     @Override
     public boolean isHealthy() {
@@ -83,8 +86,8 @@ public class InfluxWriterNative implements InfluxWriter {
         Instant timestamp = event.timestamp() == null ? Instant.now() : event.timestamp();
         long timestampEpochNano = InfluxWriter.toEpochNs(timestamp);
 
-        String extraTags = event.tags().isEmpty() ? "" : prepareTagsForInflux(event.tags());
-        String key = event.measurementName() + generatedTags + extraTags;
+        String tags = event.tags().isEmpty() ? generatedTags : prepareTagsForInflux(globalTags, event.tags());
+        String key = event.measurementName() + tags;
 
         // note: field String values must be quoted, unlike tags
         Map<String, String> fields = new HashMap<>();
@@ -116,6 +119,15 @@ public class InfluxWriterNative implements InfluxWriter {
         } else {
             sendInfluxData(dataToSend);
         }
+    }
+
+    static @NotNull String prepareTagsForInflux(Map<String,String> globalTags, Map<String,String> eventTags) {
+        if (eventTags.isEmpty()) {
+            return prepareTagsForInflux(globalTags);
+        }
+        Map<String, String> allTags = new HashMap<>(globalTags);
+        allTags.putAll(eventTags);
+        return prepareTagsForInflux(allTags);
     }
 
     private static @NotNull String prepareTagsForInflux(Map<String,String> origTags) {

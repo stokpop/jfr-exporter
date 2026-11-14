@@ -61,4 +61,24 @@ class ObjectAllocationSampleEventTest {
         assertEquals("java.lang.Byte[]", JfrUtil.translatePrimitiveClass("[Ljava.lang.Byte;"));
         assertEquals(byte[][][][][].class.getCanonicalName(), JfrUtil.translatePrimitiveClass("[[[[[B"));
     }
+
+    @Test
+    void testSizeBucket() {
+        assertEquals("<1KiB",       ObjectAllocationSampleEvent.sizeBucket(0));
+        assertEquals("<1KiB",       ObjectAllocationSampleEvent.sizeBucket(1_023));
+        assertEquals("1-10KiB",    ObjectAllocationSampleEvent.sizeBucket(1_024));
+        assertEquals("1-10KiB",    ObjectAllocationSampleEvent.sizeBucket(10_239));
+        assertEquals("10-100KiB",  ObjectAllocationSampleEvent.sizeBucket(10_240));
+        assertEquals("10-100KiB",  ObjectAllocationSampleEvent.sizeBucket(102_399));
+        assertEquals("100KiB-1MiB", ObjectAllocationSampleEvent.sizeBucket(102_400));
+        assertEquals("100KiB-1MiB", ObjectAllocationSampleEvent.sizeBucket(1_048_575));
+        assertEquals("1-10MiB",    ObjectAllocationSampleEvent.sizeBucket(1_048_576));
+        assertEquals("1-10MiB",    ObjectAllocationSampleEvent.sizeBucket(10_485_759));
+        assertEquals("10-100MiB",  ObjectAllocationSampleEvent.sizeBucket(10_485_760));
+        assertEquals("10-100MiB",  ObjectAllocationSampleEvent.sizeBucket(104_857_599));
+        assertEquals("100MiB-1GiB", ObjectAllocationSampleEvent.sizeBucket(104_857_600));
+        assertEquals("100MiB-1GiB", ObjectAllocationSampleEvent.sizeBucket(1_073_741_823));
+        assertEquals(">1GiB",      ObjectAllocationSampleEvent.sizeBucket(1_073_741_824));
+        assertEquals(">1GiB",      ObjectAllocationSampleEvent.sizeBucket(Long.MAX_VALUE));
+    }
 }

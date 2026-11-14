@@ -89,6 +89,17 @@ public record ProcessedJfrEvent(@Nullable Instant timestamp,
         return new ProcessedJfrEvent(timestamp, measurementName, tags, field, value, extraFields, List.of());
     }
 
+    public static ProcessedJfrEvent of(
+            @Nullable Instant timestamp,
+            @Nonnull String measurementName,
+            @Nonnull Map<String, String> tags,
+            @Nonnull String field,
+            @Nonnull Number value,
+            @Nonnull Map<String, Object> extraFields,
+            @Nonnull List<String> stacktrace) {
+        return new ProcessedJfrEvent(timestamp, measurementName, tags, field, value, extraFields, stacktrace);
+    }
+
     public String toStringShort() {
         return "ProcessedJfrEvent{" +
                 "timestamp=" + timestamp +

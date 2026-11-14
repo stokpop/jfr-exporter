@@ -16,6 +16,7 @@
 package io.perfana.jfr.event;
 
 import io.perfana.jfr.*;
+import jdk.jfr.consumer.RecordedClass;
 import jdk.jfr.consumer.RecordedEvent;
 
 import java.time.Instant;
@@ -36,6 +37,19 @@ public class ObjectAllocationSampleEvent implements OnJfrEvent, JfrEventProvider
 
     private static final long reportIntervalMs = 2000;
 
+    private static final long KiB = 1_024L;
+    private static final long MiB = 1_024L * KiB;
+    private static final long GiB = 1_024L * MiB;
+
+    private static final Map<String, String> TAGS_LT_1KiB      = Map.of("size-bucket", "<1KiB");
+    private static final Map<String, String> TAGS_1_10KiB      = Map.of("size-bucket", "1-10KiB");
+    private static final Map<String, String> TAGS_10_100KiB    = Map.of("size-bucket", "10-100KiB");
+    private static final Map<String, String> TAGS_100KiB_1MiB  = Map.of("size-bucket", "100KiB-1MiB");
+    private static final Map<String, String> TAGS_1_10MiB      = Map.of("size-bucket", "1-10MiB");
+    private static final Map<String, String> TAGS_10_100MiB    = Map.of("size-bucket", "10-100MiB");
+    private static final Map<String, String> TAGS_100MiB_1GiB  = Map.of("size-bucket", "100MiB-1GiB");
+    private static final Map<String, String> TAGS_GT_1GiB      = Map.of("size-bucket", ">1GiB");
+
     public ObjectAllocationSampleEvent(JfrEventProcessor eventProcessor, long thresholdSizeBytes) {
         if (eventProcessor == null) throw new IllegalArgumentException("eventProcessor must not be null");
         log.debug("Tracing object allocations of more than %d bytes.", thresholdSizeBytes);
@@ -50,16 +64,21 @@ public class ObjectAllocationSampleEvent implements OnJfrEvent, JfrEventProvider
         // for a particular class, thread or stack trace,
         // gives a statistically accurate representation of the allocation pressure
         long weight = event.getLong("weight");
-        String objectClass = event.getClass("objectClass").getName();
+        RecordedClass recordedClass = event.getClass("objectClass");
+        if (recordedClass == null) {
+            log.error("No objectClass in %s event, skipping", name);
+            return;
+        }
+        String objectClass = recordedClass.getName();
         Instant startTime = event.getStartTime();
         log.trace("%s %s %d", (startTime == null ? "<no-start-time>" : startTime), name, weight);
 
         reportLargeAllocationSample(event, weight, objectClass, startTime);
 
-        reportTotalAllocations(weight, startTime);
+        reportTotalAllocations(weight);
     }
 
-    private void reportTotalAllocations(long weight, Instant startTime) {
+    private void reportTotalAllocations(long weight) {
         totalAllocationsBytes.addAndGet(weight);
 
         long now = System.currentTimeMillis();
@@ -78,13 +97,13 @@ public class ObjectAllocationSampleEvent implements OnJfrEvent, JfrEventProvider
                     totalAllocations,
                     allocationRate);
 
-            ProcessedJfrEvent event = ProcessedJfrEvent.of(
-                    startTime,
+            ProcessedJfrEvent rateEvent = ProcessedJfrEvent.of(
+                    Instant.ofEpochMilli(now),
                     "allocation-rate-bytes",
                     "bytes",
                     allocationRate);
 
-            eventProcessor.processEvent(event);
+            eventProcessor.processEvent(rateEvent);
         }
     }
 
@@ -102,11 +121,12 @@ public class ObjectAllocationSampleEvent implements OnJfrEvent, JfrEventProvider
             String firstStack = stackTrace.isEmpty() ? "<none>" : stackTrace.get(0);
             log.debug("Found high allocation weight of %d bytes of %s in '%s'", weight, objectClassTranslation, firstStack);
 
-            Map<String, Object> extraFields = Map.of("objectClass", objectClassTranslation, "thread", event.getThread().getJavaName());
+            Map<String, Object> extraFields = Map.of("objectClass", objectClassTranslation, "thread", JfrUtil.nullSafeGetThreadJavaName(event));
 
             ProcessedJfrEvent processedEvent = ProcessedJfrEvent.of(
                     startTime,
                     "object-allocation-sample",
+                    sizeBucketTags(weight),
                     "bytes",
                     weight,
                     extraFields,
@@ -114,6 +134,21 @@ public class ObjectAllocationSampleEvent implements OnJfrEvent, JfrEventProvider
 
             eventProcessor.processEvent(processedEvent);
         }
+    }
+
+    static Map<String, String> sizeBucketTags(long bytes) {
+        if (bytes < KiB)        return TAGS_LT_1KiB;
+        if (bytes < 10 * KiB)   return TAGS_1_10KiB;
+        if (bytes < 100 * KiB)  return TAGS_10_100KiB;
+        if (bytes < MiB)        return TAGS_100KiB_1MiB;
+        if (bytes < 10 * MiB)   return TAGS_1_10MiB;
+        if (bytes < 100 * MiB)  return TAGS_10_100MiB;
+        if (bytes < GiB)        return TAGS_100MiB_1GiB;
+        return TAGS_GT_1GiB;
+    }
+
+    static String sizeBucket(long bytes) {
+        return sizeBucketTags(bytes).get("size-bucket");
     }
 
     @Override

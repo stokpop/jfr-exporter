@@ -94,6 +94,7 @@ Usage: java JfrExporter
   --otlpSignal <metrics>
   --otlpFormat <protobuf|json>
   --enableExecutorMBeans
+  --stacktraceLogSample <N>
   --influxUrl <influxUrl> 
   --influxDatabase <influxDatabase>
   --influxUser <influxUser> 
@@ -109,7 +110,8 @@ Set `--otlpEndpoint http://localhost:4318 --otlpSignal metrics --otlpFormat json
 Use `--otlpProtocol grpc --otlpEndpoint http://localhost:4317 --otlpSignal metrics` for OTLP/gRPC collectors.
 Do not include `/v1/metrics` in the configured endpoint; jfr-exporter appends the correct OTLP signal path internally for HTTP exporters.
 OTLP/HTTP uses regular HTTP transport with `POST /v1/metrics`. Use `--otlpFormat protobuf` for binary protobuf payloads (`Content-Type: application/x-protobuf`) or `--otlpFormat json` for JSON-encoded OTLP metrics (`Content-Type: application/json`).
-When OTLP export is enabled, numeric JFR event values are sent as OpenTelemetry metrics and stack traces are intentionally omitted from the OTLP payload.
+When OTLP export is enabled, numeric JFR event values are sent as OpenTelemetry metrics and stack traces are intentionally omitted from the metrics.
+Use `--stacktraceLogSample N` to also send the stack trace as an OTLP log record (attribute `code.stacktrace`) for 1 in every N events per event type, for example `--stacktraceLogSample 100` for large allocations. The log record carries the same tags and fields as the metric, so it can be correlated by tags and timestamp. Default is `0` (off). JFR events carry no trace context, so no trace id or span id is attached. Logs follow `--otlpProtocol` (`POST /v1/logs` for HTTP) and are always sent as protobuf, also when `--otlpFormat json` is set.
 The OTLP path also includes an example allocation-size recorder exposed as `jfr.object.allocation.bytes`, and the meter provider abstraction is designed so additional JFR metrics can be registered the same way.
 
 Use `--disableStackTraces` to limit stack traces to only the first three frames.

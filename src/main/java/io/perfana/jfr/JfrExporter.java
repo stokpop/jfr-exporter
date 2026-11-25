@@ -21,7 +21,9 @@ import io.perfana.jfr.influx.InfluxWriter;
 import io.perfana.jfr.influx.InfluxWriterConfig;
 import io.perfana.jfr.influx.InfluxWriterNative;
 import io.perfana.jfr.otel.JfrMeterProvider;
+import io.perfana.jfr.otel.JfrLogEmitter;
 import io.perfana.jfr.otel.OpenTelemetryEventProcessor;
+import io.perfana.jfr.otel.OpenTelemetryLogEmitter;
 import io.perfana.jfr.otel.OpenTelemetryMeterProvider;
 import org.jetbrains.annotations.NotNull;
 
@@ -221,7 +223,10 @@ public class JfrExporter {
                 args.getOtlpSignal(),
                 args.getOtlpFormat(),
                 args.getTags());
-        return new OpenTelemetryEventProcessor(meterProvider, args.getTags());
+        JfrLogEmitter logEmitter = args.getStacktraceLogSample() > 0
+                ? new OpenTelemetryLogEmitter(args.getOtlpEndpoint(), args.getOtlpProtocol(), args.getTags())
+                : null;
+        return new OpenTelemetryEventProcessor(meterProvider, args.getTags(), logEmitter, args.getStacktraceLogSample());
     }
 
     public static void premain(String args, Instrumentation instrumentation){

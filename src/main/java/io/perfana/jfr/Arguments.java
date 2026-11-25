@@ -38,6 +38,7 @@ public class Arguments {
     private long bigObjectThresholdBytes = 256_000L;
     private long bigObjectSampleWeightThresholdBytes = 48_000_000L;
     private boolean enableStackTraces = true;
+    private int stacktraceLogSample = 0;
 
     public static String usage() {
         return "Usage: java JfrExporter " +
@@ -53,6 +54,7 @@ public class Arguments {
                 " --otlpSignal <metrics>" +
                 " --otlpFormat <protobuf|json>" +
                 " --enableExecutorMBeans" +
+                " --stacktraceLogSample <N: send stacktrace as OTLP log for 1 in N events, 0=off>" +
                 " --influxUrl <influxUrl> --influxDatabase <influxDatabase>" +
                 " --influxUser <influxUser> --influxPassword <influxPassword>";
     }
@@ -105,6 +107,11 @@ public class Arguments {
 
             if (matches(arg,  "--influxUrl", "influxUrl")) {
                 arguments.influxUrl = options.remove();
+                continue;
+            }
+
+            if (matches(arg, "", "--stacktraceLogSample", "stacktraceLogSample")) {
+                arguments.stacktraceLogSample = Integer.parseInt(options.remove());
                 continue;
             }
 
@@ -207,6 +214,10 @@ public class Arguments {
         return influxDatabase;
     }
 
+    public int getStacktraceLogSample() {
+        return stacktraceLogSample;
+    }
+
     public String getOtlpEndpoint() {
         return otlpEndpoint;
     }
@@ -269,6 +280,7 @@ public class Arguments {
                 ", debug=" + debug +
                 ", duration=" + duration +
                 ", enableStackTraces=" + enableStackTraces +
+                ", stacktraceLogSample=" + stacktraceLogSample +
                 '}';
     }
 

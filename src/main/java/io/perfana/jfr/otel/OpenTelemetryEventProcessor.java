@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class OpenTelemetryEventProcessor implements JfrEventProcessor, AutoCloseable {
 
@@ -43,13 +44,27 @@ public class OpenTelemetryEventProcessor implements JfrEventProcessor, AutoClose
     private final Map<MetricId, JfrMeterProvider.DoubleValueRecorder> doubleRecorders = new ConcurrentHashMap<>();
     private final JfrMeterProvider.LongValueRecorder allocationSizeRecorder;
 
+    private final JfrLogEmitter logEmitter;
+    private final int stacktraceLogSample;
+    private final Map<String, AtomicLong> stacktraceCounters = new ConcurrentHashMap<>();
+
     public OpenTelemetryEventProcessor(JfrMeterProvider meterProvider, Map<String, String> defaultTags) {
+        this(meterProvider, defaultTags, null, 0);
+    }
+
+    /**
+     * @param stacktraceLogSample emit a log record with stacktrace for 1 in every N events per measurement; 0 disables
+     */
+    public OpenTelemetryEventProcessor(JfrMeterProvider meterProvider, Map<String, String> defaultTags,
+                                       JfrLogEmitter logEmitter, int stacktraceLogSample) {
         if (meterProvider == null) {
             throw new IllegalArgumentException("meterProvider must not be null");
         }
         this.meterProvider = meterProvider;
         this.defaultTags = defaultTags == null ? Map.of() : Map.copyOf(defaultTags);
         this.allocationSizeRecorder = meterProvider.registerLongValueRecorder(ALLOCATION_SIZE_METRIC);
+        this.logEmitter = logEmitter;
+        this.stacktraceLogSample = Math.max(0, stacktraceLogSample);
     }
 
     @Override
@@ -71,10 +86,32 @@ public class OpenTelemetryEventProcessor implements JfrEventProcessor, AutoClose
         if (isAllocationSizeMetric(primaryMetric) && isIntegralNumber(event.value())) {
             allocationSizeRecorder.record(event.value().longValue(), attributes);
         }
+
+        maybeLogStacktrace(event, attributes);
+    }
+
+    private void maybeLogStacktrace(ProcessedJfrEvent event, Attributes attributes) {
+        if (logEmitter == null || stacktraceLogSample == 0 || event.stacktrace().isEmpty()) {
+            return;
+        }
+        long count = stacktraceCounters.computeIfAbsent(event.measurementName(), k -> new AtomicLong())
+                .incrementAndGet();
+        if (count % stacktraceLogSample != 0) {
+            return;
+        }
+        Attributes logAttributes = attributes.toBuilder()
+                .put("jfr.event", event.measurementName())
+                .put("code.stacktrace", String.join("\n", event.stacktrace()))
+                .build();
+        String body = event.measurementName() + " " + event.field() + "=" + event.value();
+        logEmitter.emit(event.timestamp(), body, logAttributes);
     }
 
     @Override
     public void close() throws Exception {
+        if (logEmitter != null) {
+            logEmitter.close();
+        }
         meterProvider.close();
     }
 

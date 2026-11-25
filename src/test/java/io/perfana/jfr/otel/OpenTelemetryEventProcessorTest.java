@@ -35,6 +35,48 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class OpenTelemetryEventProcessorTest {
 
     @Test
+    void emitsStacktraceLogForOneInEveryNEvents() {
+        List<String> bodies = new ArrayList<>();
+        List<Attributes> logAttributes = new ArrayList<>();
+        JfrLogEmitter emitter = (timestamp, body, attributes) -> {
+            bodies.add(body);
+            logAttributes.add(attributes);
+        };
+        OpenTelemetryEventProcessor eventProcessor = new OpenTelemetryEventProcessor(
+                new FakeMeterProvider(), Map.of("service", "checkout"), emitter, 3);
+
+        for (int i = 0; i < 7; i++) {
+            eventProcessor.processEvent(ProcessedJfrEvent.of(
+                    Instant.parse("2026-04-11T00:00:00Z"),
+                    "big-allocations",
+                    "bytes",
+                    1_000_000L,
+                    Map.of(),
+                    List.of("a.B.c(B.java:1)", "a.B.d(B.java:2)")));
+        }
+
+        assertEquals(2, bodies.size());
+        assertEquals("a.B.c(B.java:1)\na.B.d(B.java:2)",
+                logAttributes.get(0).get(AttributeKey.stringKey("code.stacktrace")));
+        assertEquals("checkout", logAttributes.get(0).get(AttributeKey.stringKey("service")));
+    }
+
+    @Test
+    void emitsNoStacktraceLogWhenDisabledOrNoStacktrace() {
+        List<String> bodies = new ArrayList<>();
+        JfrLogEmitter emitter = (timestamp, body, attributes) -> bodies.add(body);
+        OpenTelemetryEventProcessor disabled = new OpenTelemetryEventProcessor(
+                new FakeMeterProvider(), Map.of(), emitter, 0);
+        OpenTelemetryEventProcessor noStack = new OpenTelemetryEventProcessor(
+                new FakeMeterProvider(), Map.of(), emitter, 1);
+
+        disabled.processEvent(ProcessedJfrEvent.of(null, "big-allocations", "bytes", 1L, Map.of(), List.of("x")));
+        noStack.processEvent(ProcessedJfrEvent.of(null, "big-allocations", "bytes", 1L, Map.of(), List.of()));
+
+        assertTrue(bodies.isEmpty());
+    }
+
+    @Test
     void recordsNumericMetricsAndSkipsStacktracePayload() {
         FakeMeterProvider meterProvider = new FakeMeterProvider();
         OpenTelemetryEventProcessor eventProcessor = new OpenTelemetryEventProcessor(

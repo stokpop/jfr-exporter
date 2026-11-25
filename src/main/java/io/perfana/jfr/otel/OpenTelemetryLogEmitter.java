@@ -38,7 +38,6 @@ public class OpenTelemetryLogEmitter implements JfrLogEmitter {
     private static final String DEFAULT_SERVICE_NAME = "jfr-exporter";
 
     private final SdkLoggerProvider loggerProvider;
-    private final io.opentelemetry.api.logs.Logger otelLogger;
 
     public OpenTelemetryLogEmitter(String endpoint, OpenTelemetryMeterProvider.OtlpProtocol configuredProtocol,
                                    Map<String, String> tags) {
@@ -46,7 +45,7 @@ public class OpenTelemetryLogEmitter implements JfrLogEmitter {
         log.info("OpenTelemetry log exporter configured for %s", endpoint);
     }
 
-    private static LogRecordExporter createExporter(String endpoint, OpenTelemetryMeterProvider.OtlpProtocol configuredProtocol) {
+    static LogRecordExporter createExporter(String endpoint, OpenTelemetryMeterProvider.OtlpProtocol configuredProtocol) {
         if (endpoint == null || endpoint.isBlank()) {
             throw new IllegalArgumentException("endpoint must not be blank");
         }
@@ -69,12 +68,11 @@ public class OpenTelemetryLogEmitter implements JfrLogEmitter {
                         Attributes.of(AttributeKey.stringKey("service.name"), serviceName))))
                 .addLogRecordProcessor(BatchLogRecordProcessor.builder(exporter).build())
                 .build();
-        this.otelLogger = loggerProvider.get(SCOPE_NAME);
     }
 
     @Override
     public void emit(Instant timestamp, String body, Attributes attributes) {
-        var builder = otelLogger.logRecordBuilder()
+        var builder = loggerProvider.get(SCOPE_NAME).logRecordBuilder()
                 .setSeverity(Severity.INFO)
                 .setSeverityText("INFO")
                 .setBody(body)

@@ -62,6 +62,21 @@ class OpenTelemetryEventProcessorTest {
     }
 
     @Test
+    void samplesEachMeasurementIndependently() {
+        List<String> bodies = new ArrayList<>();
+        JfrLogEmitter emitter = (timestamp, body, attributes) -> bodies.add(body);
+        OpenTelemetryEventProcessor eventProcessor = new OpenTelemetryEventProcessor(
+                new FakeMeterProvider(), Map.of(), emitter, 2);
+
+        for (int i = 0; i < 3; i++) {
+            eventProcessor.processEvent(ProcessedJfrEvent.of(null, "frequent", "bytes", 1L, Map.of(), List.of("x")));
+        }
+        eventProcessor.processEvent(ProcessedJfrEvent.of(null, "rare", "bytes", 2L, Map.of(), List.of("y")));
+
+        assertEquals(List.of("frequent bytes=1"), bodies);
+    }
+
+    @Test
     void emitsNoStacktraceLogWhenDisabledOrNoStacktrace() {
         List<String> bodies = new ArrayList<>();
         JfrLogEmitter emitter = (timestamp, body, attributes) -> bodies.add(body);
